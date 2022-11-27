@@ -119,13 +119,12 @@ def simulated_annealing(sys:System, x_map, y_map, T0, Tf, i_max):
     # Else, leave as is
 
 
-    # Update temperature
-    # t = temp / float(i + 1)
     plot_cost(costs, temperatures)
+    
+    # Update temperature
     t = temperature_linear_update(T0, iter+1, beta)
     # t = temperature_geo_update(T0, iter+1, alpha)
     
-    # print('temp: ', t)
     if t <= Tf:
       break
     ax1.set_xlim(0, x_map)
