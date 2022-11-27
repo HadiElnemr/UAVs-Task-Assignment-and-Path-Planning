@@ -56,7 +56,7 @@ class Obstacles:
           continue
         if self.position.get_distance_to_closest_on_line(uav.path[idx-1], point) <= self.radius:
           return True
-    return True
+    return False
 
 class Task:
   def __init__(self, position):
