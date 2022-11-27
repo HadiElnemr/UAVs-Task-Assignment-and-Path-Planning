@@ -2,6 +2,8 @@ import math
 import random
 import copy
 from typing import List
+from parameters import *
+
 class Point:
   def __init__(self, x, y):
     self.x = x
@@ -11,6 +13,27 @@ class Point:
     # add noise shift (+ve or -ve). ex: e_x = 0.5  x = (1 + 0.5) * x
     self.x += e_x
     self.y += e_y
+
+  def dot(self, p: 'Point'):
+        return self.x * p.x + self.y * p.y
+
+  def add(self, p: 'Point'):
+      return Point(self.x + p.x, self.y + p.y)
+
+  def sub(self, p: 'Point'):
+      return Point(self.x - p.x, self.y - p.y)
+
+  def mul(self, f: float):
+      return Point(self.x * f, self.y * f)
+  def get_closest_on_line(self, a: 'Point', b: 'Point'): # Line ab is considered a line segment, so find the point on that segment
+        ba = b.sub(a)   # b with respect to a
+        ds = self.sub(a).dot(ba) / ba.dot(ba)     #   (p - a). ba  / ||ba||^2 
+        # if point is outside the line segment, get the closest point on the line segment (end of line)
+        if ds < 0 :
+            ds = 0 # closest point is a
+        elif ds > 1:
+            ds = 1 # closest point is b
+        return a.add(ba.mul(ds))
 
   def __str__(self):
     return f"x: {self.x}, y: {self.y}"
