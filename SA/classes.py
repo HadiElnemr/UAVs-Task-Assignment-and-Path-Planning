@@ -47,7 +47,12 @@ def rand_position(x_max, y_max):
   
 rand_position(2,2)
 
-# class Obstacles:
+class Obstacles:
+  def __init__(self, position=None) -> None:
+    self.position: Point = position
+    if self.position == None:
+      self.position = rand_position(x_max=x_map, y_max=y_map)
+  
 
 class Task:
   def __init__(self, position):
