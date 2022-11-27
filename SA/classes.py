@@ -25,15 +25,11 @@ class Point:
 
   def mul(self, f: float):
       return Point(self.x * f, self.y * f)
-  def get_closest_on_line(self, a: 'Point', b: 'Point'): # Line ab is considered a line segment, so find the point on that segment
-        ba = b.sub(a)   # b with respect to a
-        ds = self.sub(a).dot(ba) / ba.dot(ba)     #   (p - a). ba  / ||ba||^2 
-        # if point is outside the line segment, get the closest point on the line segment (end of line)
-        if ds < 0 :
-            ds = 0 # closest point is a
-        elif ds > 1:
-            ds = 1 # closest point is b
-        return a.add(ba.mul(ds))
+  
+  def get_distance_to_closest_on_line(self, a: 'Point', b: 'Point'): # Line ab is considered a line segment, so find the point on that segment
+    ba = b.sub(a)   # b with respect to a
+    ds = self.sub(a).dot(ba) / ba.dot(ba)     #   (p - a). ba  / ||ba||^2 
+    return ds
 
   def __str__(self):
     return f"x: {self.x}, y: {self.y}"
@@ -44,15 +40,23 @@ class Point:
 
 def rand_position(x_max, y_max):
   return Point(round(x_max*random.random()), round(y_max*random.random()))
-  
-rand_position(2,2)
 
 class Obstacles:
-  def __init__(self, position=None) -> None:
+  def __init__(self, radius, position=None) -> None:
+    self.radius = radius
     self.position: Point = position
+    
     if self.position == None:
       self.position = rand_position(x_max=x_map, y_max=y_map)
-  
+
+  def check_collision(self, uavs:List[uavs]):
+    for uav in uavs:
+      for idx, point in enumerate(uav.path):
+        if idx == 0:
+          continue
+        if self.position.get_distance_to_closest_on_line(uav.path[idx-1], point) <= self.radius:
+          return True
+    return True
 
 class Task:
   def __init__(self, position):
