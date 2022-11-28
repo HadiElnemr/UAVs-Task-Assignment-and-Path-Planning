@@ -33,7 +33,7 @@ def simulated_annealing(sys:System, x_map, y_map, T0, Tf, i_max):
   # Assign random tasks to the UAVs
 #   sys.assign_random_tasks()
   # To be changed to David's code
-  sys.assign_tasks_SA()
+  sys.assign_tasks_SA(Tf,T0,beta)
   
     # UAVs
   uavs:List[UAV] = sys.list_of_UAVs  

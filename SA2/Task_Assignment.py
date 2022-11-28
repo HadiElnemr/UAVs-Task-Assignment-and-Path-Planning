@@ -1,5 +1,3 @@
-
-
 import math
 import random
 import copy
@@ -44,7 +42,7 @@ def isFeasible(list_of_UAVs):
 
 
 
-def simulated_annealing_TaskAssignment(sys, T0, Tf, beta  ):
+def simulated_annealing_TaskAssignment(sys:'System', T0, Tf, beta):
 #   y=np.array([])
 #   x=np.array([])  
   i=1  
