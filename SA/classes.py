@@ -49,7 +49,7 @@ class Obstacles:
     if self.position == None:
       self.position = rand_position(x_max=x_map, y_max=y_map)
 
-  def check_collision(self, uavs:List[uavs]):
+  def check_collision(self, uavs:List['UAV']):
     for uav in uavs:
       for idx, point in enumerate(uav.path):
         if idx == 0:
