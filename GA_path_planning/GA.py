@@ -74,6 +74,7 @@ class GeneticAlgorithm:
             #     print("Errorr")
             # # print(len(self.gen_sols[p1_idx][uav_idx]))
             uav1, uav2 = self.gen_sols[p1_idx][uav_idx], self.gen_sols[p2_idx][uav_idx]
+            
             if uav1.number_of_assigned_tasks() > 0:
                 path1, path2 = self.uav_crossover(uav1, uav2)
                 
@@ -84,9 +85,10 @@ class GeneticAlgorithm:
                 child_uavs_1.append(children_uavs[0])
                 child_uavs_2.append(children_uavs[1]) 
             else:
-                child_uavs_1.append(uav1)
-                child_uavs_2.append(uav2)
-
+                child_uavs_1.append(copy.deepcopy(uav1))
+                child_uavs_2.append(copy.deepcopy(uav2))
+            
+            
         return child_uavs_1, child_uavs_2
 
     def uav_crossover(self, uav1:UAV, uav2:UAV):
@@ -94,18 +96,19 @@ class GeneticAlgorithm:
         path2 = []
         for point_idx in range(len(uav1.path)):
             if (point_idx+1)%(no_path_points+1) == 0: # If this is a task point, do not shift it
+                path1.append(uav1.path[point_idx])
+                path2.append(uav2.path[point_idx])
                 continue
-            print(len(uav1.path), len(uav2.path))
-            print(uav1.path[-1], uav2.path[-1])
             p1, p2 = self.position_crossover(uav1.path[point_idx], uav2.path[point_idx])
+            
             path1.append(p1)
             path2.append(p2)
         return path1, path2
 
     def position_crossover(self, p1:Point, p2:Point):
         alpha = np.random.rand() * (0.9 - 0.7) + 0.7
-        return Point(x = alpha * p1.x + (1 - alpha) * p2.x, y = alpha * p1.y + (1 - alpha) * p2.y),\
-               Point(x = (1-alpha) * p1.x + alpha * p2.x, y = (1-alpha) * p1.y + alpha * p2.y)
+        return Point(x = int(alpha * p1.x + (1 - alpha) * p2.x), y = int(alpha * p1.y + (1 - alpha) * p2.y)),\
+               Point(x = int((1-alpha) * p1.x + alpha * p2.x), y = int((1-alpha) * p1.y + alpha * p2.y))
     
     def mutation(self, p_idx):                
         child = []
@@ -143,8 +146,10 @@ class GeneticAlgorithm:
         n_mutations = int(self.p_mutation * self.n_pop)
         n_elite = int(self.p_elite * self.n_pop)
         n_survivors = self.n_pop - int(self.p_crossover*self.n_pop) - n_mutations - n_elite
+
         for _ in range(self.max_iter):
-            print(_)
+            # print('iteration:', _)
+
             # Crossover and Parents Selection
             parents_idx = self.selectParents(numParents=n_crossovers*2, criteria=self.parents_selection)
             
@@ -197,7 +202,8 @@ class GeneticAlgorithm:
             else:
                 self.best_sols.append(self.best_sols[-1])
                 self.best_fvalues.append(self.best_fvalues[-1])
-    
+            print(self.best_fvalues)
+
     def visualize(self):
         # convergence plot
         fig1 = go.Figure(data=go.Scatter(x=np.arange(0, self.max_iter), y=self.best_fvalues, mode="lines"))
@@ -216,7 +222,14 @@ if __name__ == "__main__":
   for ui in range(n_uavs):
     uavs += [UAV(Point.rand_position(x_map,y_map))]
   sys = System(uavs, tasks)
-  sys.assign_random_tasks()
+#   sys.assign_random_tasks()
+
+  uavs[0].position = Point(0,0)
+  uavs[1].position = Point(0,2)
+  uavs[2].position = Point(0,7)
+
+  for uav in sys.list_of_UAVs:
+    print(uav.number_of_assigned_tasks())
 
   GA = GeneticAlgorithm(sys, n_pop = 50, max_iter=100, p_elite=0.1, p_crossover=0.8, p_mutation=0.1, 
                                   parents_selection="SUS", tournament_size = 20, mutation_selection = "Worst", survivors_selection = "Age")
