@@ -200,10 +200,3 @@ def objective(uavs:List[UAV], sys:System):
   for uav in uavs:
     path_lengths = path_lengths + uav.path_length()
   return path_lengths + sys.Weight * sys.number_of_used_UAVs()
-
-
-def path_objective(uavs):
-  path_lengths = []
-  for uav in uavs:
-    path_lengths.append(uav.path_length())
-  return path_lengths
