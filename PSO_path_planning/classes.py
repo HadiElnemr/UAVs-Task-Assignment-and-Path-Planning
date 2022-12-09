@@ -16,6 +16,9 @@ class Point:
     self.x += e_x
     self.y += e_y
 
+  def get_distance(self, p):
+    return math.sqrt((self.x - p.x)**2 + (self.y - p.y)**2)
+
   def dot(self, p: 'Point'):
         return self.x * p.x + self.y * p.y
 
@@ -102,9 +105,6 @@ class UAV:
       st += "("+str(task.position.x) + ","+str(task.position.y)+") "
      return f"Position {self.position} \n Tasks : {st}"
     
-def get_distance(p1, p2):
-  return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
-
 class System:
   def __init__(self, list_of_UAVs,list_of_tasks):
     self.list_of_UAVs:List[UAV] = list_of_UAVs
