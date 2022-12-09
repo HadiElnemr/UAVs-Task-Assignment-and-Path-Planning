@@ -6,7 +6,7 @@ i_max = 500
 # paramaters
 shift = 5
 shift_x, shift_y = 5, 5
-no_path_points = 1
+no_path_points = 2
 
 costs = []
 

@@ -1,80 +1,6 @@
-
-
-import math
-import random
 import copy
-import numpy as np
-from matplotlib import pyplot as plt
-import time
-import parameters
+import random
 import classes
-# from visualise import *
-from typing import List
-
-
-####### SIMULATED ANNEALING
-
-def generate_new_sol(list_of_UAVs):
-  UAVs=copy.deepcopy(list_of_UAVs)
-  while True:
-    uav_idx = random.randint(0, len(UAVs) - 1)
-    uav = UAVs[uav_idx] 
-    if uav.number_of_assigned_tasks() > 0:
-      break
-  task_idx = 0 if len(uav.list_of_tasks)==0 else random.randint(0, len(uav.list_of_tasks) - 1)
-  task=uav.list_of_tasks.pop(task_idx)
-  while True:
-    new_uav_idx = random.randint(0, len(UAVs) - 1)
-    new_uav = UAVs[new_uav_idx]
-    new_task_idx = 0 if len(new_uav.list_of_tasks)==0 else random.randint(0, len(new_uav.list_of_tasks) - 1)
-    new_uav.list_of_tasks.insert(new_task_idx,task)
-    
-    if isFeasible(UAVs):
-      break
-    new_uav.list_of_tasks.pop(new_task_idx)  
-  
-  return UAVs
-    
-
-
-def isFeasible(list_of_UAVs):
-  for uav in list_of_UAVs:
-    if uav.number_of_assigned_tasks()>uav.max_tasks:
-      return False
-  return True
-
-
-
-
-
-def simulated_annealing_TaskAssignment(sys, T0, Tf, beta  ):
-#   y=np.array([])
-#   x=np.array([])
-  i=1
-  T=T0 - beta*i
-  while T >= Tf:
-    sys.update_candidate()
-    diff=sys.candidate_Obj - sys.best_Obj
-    if diff < 0 :
-      sys.update_UAVs(copy.deepcopy(sys.candidate))
-    else:
-      metropolis = math.exp(-diff / T)
-      if metropolis > random.random():
-        sys.update_UAVs(copy.deepcopy(sys.candidate))
-#     print(sys.best_Obj)
-#     y=np.append(y,sys.best_Obj)
-#     x=np.append(x,T)
-
-    i+=1
-    T=T0 - beta*i
-
-#   plt.scatter(x,y)  
-#   plt.show()
-
-
-########_---------------------------------------------------------------------------------------------------------------------------
-
-#### GENETIC ALGORITH
 
 class child:
     def __init__(self,list_of_UAVs):
@@ -210,13 +136,13 @@ def GA_TaskAssignment(sys,percent_elite,percent_crossover,percent_mutant,number_
     EliteN=int(percent_elite*number_of_population)
     CrossoverN=int(percent_crossover*number_of_population)
     MutantN=number_of_population-EliteN-CrossoverN
-    print(EliteN,CrossoverN,MutantN)
+    # print(EliteN,CrossoverN,MutantN)
     prev_g=generate_random_generation(sys,number_of_population)
     number_of_generations-=1
-    print(prev_g)
+    # print(prev_g)
     for i in range(number_of_generations):
 
-        print(i)
+        # print(i)
         curr_g=[]
         for j in range(EliteN):
             curr_g.append(prev_g.list_of_children[j])
@@ -239,15 +165,7 @@ def GA_TaskAssignment(sys,percent_elite,percent_crossover,percent_mutant,number_
             # print(number_of_population-1-j)
             # print("mutant")
         prev_g=generation(curr_g)
-        print(prev_g)
+        # print(prev_g)
     
-    print(prev_g.list_of_children[0].list_of_UAVs[0])
-    # return prev_g.list_of_children[0].list_of_UAVs
-
-
-
-
-
-
-
-
+    # print(prev_g.list_of_children[0].list_of_UAVs[0])
+    return prev_g.list_of_children[0].list_of_UAVs
