@@ -33,7 +33,7 @@ def generate_new_sol(list_of_UAVs):
     
 def isFeasible(list_of_UAVs):
   for uav in list_of_UAVs:
-    if uav.number_of_assigned_tasks()>uav.max_tasks:
+    if uav.number_of_assigned_tasks() > uav.max_tasks:
       return False
   return True
 
@@ -42,7 +42,7 @@ def simulated_annealing_TaskAssignment(sys, T0, Tf, beta):
     sys.update_UAVs(classes.assign_random_tasks(sys.list_of_tasks, sys.list_of_UAVs))
     i=1
     T=T0- beta*i # update the temperature linerally
-    print("The initial objective value = ",sys.best_Obj)
+    print("The initial objective value = ", sys.best_Obj)
     bests=[sys.best_Obj]
     while T >= Tf:
         sys.update_candidate()   #generate a new solution and save it in candidate
@@ -58,13 +58,13 @@ def simulated_annealing_TaskAssignment(sys, T0, Tf, beta):
         T=T0 - beta*i
         bests.append(sys.best_Obj)
 
-    print("The best objective value = ",sys.best_Obj)
+    print("The best objective value = ", sys.best_Obj)
     ## to plot the convergence plot
-    fig1 = go.Figure(data=go.Scatter(x=np.arange(0,i), y=bests, mode="lines"))
-    fig1.update_layout(
+    fig3 = go.Figure(data=go.Scatter(x=np.arange(0,i), y=bests, mode="lines"))
+    fig3.update_layout(
         title="Convergence Plot Of Task Assignment ",
         xaxis_title="Iteration Number",
         yaxis_title="Objective Function Value"
      )
-    fig1.show()
+    fig3.show()
 
