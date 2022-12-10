@@ -30,7 +30,7 @@ def generate_new_sol(list_of_UAVs):
           break
         new_uav.list_of_tasks.pop(new_task_idx)
   return UAVs
-    
+
 def isFeasible(list_of_UAVs):
   for uav in list_of_UAVs:
     if uav.number_of_assigned_tasks() > uav.max_tasks:

@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import time
 from classes import *
 from visualise import *
-from parameters import *  
+from parameters import *
 from typing import List
 from Test_cases import sys1, sys2, sys3, sys4
 
@@ -121,23 +121,31 @@ def simulated_annealing(sys:System, x_map, y_map, T0, Tf, i_max):
       break
     ax1.set_xlim(0, x_map)
     ax1.set_ylim(0, y_map)
+  
   return best, best_eval
 
-
-
-
-
 if __name__ == "__main__":
-  # for ti in range(n_tasks):
-  #   tasks += [Task(rand_position(x_map,y_map))]
-  # for ui in range(n_uavs):
-  #   uavs += [UAV(rand_position(x_map,y_map))]
-  # sys = System(uavs, tasks)
-  sys = sys4
-  x_map = 1000
-  y_map = 1000
-  simulated_annealing_TaskAssignment(sys,100,0.1,0.1)
-  simulated_annealing(sys, x_map=x_map, y_map=y_map, T0=500, Tf=0.1, i_max=200)
+  # for _ in range(n_oabstacles):
+  #   obstacles += [Obstacle(rand_position(x_map,y_map))]
+
+  sys_no = 1
+  systems = [sys1, sys2, sys3, sys4]
+  sys = systems[sys_no - 1]
+
+  sa_ta = [(10, 10, 500, 0.02), (100, 100, 100, 0.1), (100, 100, 100, 0.1), (1000, 1000, 1000, 0.1)]
+  # (x_map, y_map, T0, Tf)
+
+  # sa_pp = [(10, 10, 50), (100, 100, 100, 0.1), (100, 100, 100, 0.1), (1000, 1000, 1000, 0.1)]
+  # (T0, Tf)
+  
+  x_map = sa_ta[sys_no][1]
+  y_map = sa_ta[sys_no][2]
+
+  # simulated_annealing_TaskAssignment(sys, 100, 0.1, 0.1)
+  costs = []
+  for _ in range(10):
+    simulated_annealing_TaskAssignment(sys, sa_ta[sys_no][2], sa_ta[sys_no][3], 0.1)
+    costs.append(simulated_annealing(sys, x_map=x_map, y_map=y_map, T0=500, Tf=0.1, i_max=200))
   print("Finished")
   while True:
     pass
