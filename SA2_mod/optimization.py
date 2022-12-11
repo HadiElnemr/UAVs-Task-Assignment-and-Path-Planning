@@ -8,6 +8,7 @@ from visualise import *
 from parameters import *
 from typing import List
 from Test_cases import sys1, sys2, sys3, sys4
+from statistics import mean, stdev
 
 def simulated_annealing(sys:System, x_map, y_map, T0, Tf, i_max):
 
@@ -105,13 +106,13 @@ def simulated_annealing(sys:System, x_map, y_map, T0, Tf, i_max):
     if diff_energy < 0 or random.random() < metropolis:
       # store the new current point
       curr, curr_eval = copy.deepcopy(uavs), new_eval
-      plot_paths(uavs, x_map, y_map, best)
-      for task in tasks:
-        ax1.plot(task.position.x,task.position.y, marker="o", markersize=15, markerfacecolor="green")
+      # plot_paths(uavs, x_map, y_map, best)
+      # for task in tasks:
+      #   ax1.plot(task.position.x,task.position.y, marker="o", markersize=15, markerfacecolor="green")
     # Else, leave as is
 
 
-    plot_cost(costs, temperatures)
+    # plot_cost(costs, temperatures)
     
     # Update temperature
     t = temperature_linear_update(T0, iter+1, beta)
@@ -128,7 +129,7 @@ if __name__ == "__main__":
   # for _ in range(n_oabstacles):
   #   obstacles += [Obstacle(rand_position(x_map,y_map))]
 
-  sys_no = 1
+  sys_no = 4
   systems = [sys1, sys2, sys3, sys4]
   sys = systems[sys_no - 1]
 
@@ -137,15 +138,23 @@ if __name__ == "__main__":
 
   # sa_pp = [(10, 10, 50), (100, 100, 100, 0.1), (100, 100, 100, 0.1), (1000, 1000, 1000, 0.1)]
   # (T0, Tf)
-  
-  x_map = sa_ta[sys_no][1]
-  y_map = sa_ta[sys_no][2]
+  print(sa_ta[3][0])
+
+  x_map = sa_ta[sys_no - 1][0]
+  y_map = sa_ta[sys_no - 1][1]
 
   # simulated_annealing_TaskAssignment(sys, 100, 0.1, 0.1)
   costs = []
   for _ in range(10):
-    simulated_annealing_TaskAssignment(sys, sa_ta[sys_no][2], sa_ta[sys_no][3], 0.1)
-    costs.append(simulated_annealing(sys, x_map=x_map, y_map=y_map, T0=500, Tf=0.1, i_max=200))
+    sys = copy.deepcopy(systems[sys_no - 1])
+    simulated_annealing_TaskAssignment(sys, sa_ta[sys_no-1][2], sa_ta[sys_no-1][3], 0.1)
+    costs.append(simulated_annealing(sys, x_map=x_map, y_map=y_map, T0=500, Tf=0.1, i_max=200)[1])
+    fig1.savefig(f"figs/sc_2_map_{_}.png")
+    fig2.savefig(f"figs/sc_2_cost_{_}.png")
+
+  print("Mean:", mean(costs))
+  print("Standard Deviation:", stdev(costs))
+  print("The costs are as follows: ", costs)
   print("Finished")
   while True:
     pass

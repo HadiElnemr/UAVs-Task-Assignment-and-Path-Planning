@@ -40,7 +40,7 @@ def plot_cost(cost, temp):
   fig2.canvas.draw()
   ax2.set_xlabel('Temperature')
   ax2.set_ylabel('Cost')
-  ax2.set_ylim(0, 1000)
+  ax2.set_ylim(0, 3000)
 
 plt.ion()
 
@@ -50,7 +50,7 @@ ax1.set_ylim(0, y_map)
 
 fig2, ax2 = plt.subplots()
 ax2.set_xlim(0, 1000)
-ax2.set_ylim(0, 100)
+ax2.set_ylim(0, 3000)
 
 # mngr = plt.get_current_fig_manager()
 # mngr.window.setGeometry(50,100,640, 545)
