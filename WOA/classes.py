@@ -86,10 +86,10 @@ class UAV:
   def path_length(self) -> float:
     length = 0
     if self.number_of_assigned_tasks() > 0:
-      length = get_distance(self.position, self.path[0])
+      length = self.position.get_distance(self.path[0])
       
       for i in range(len(self.path)-1):
-        length = length + get_distance(self.path[i], self.path[i+1])
+        length = length + self.path[i].get_distance(self.path[i+1])
     
     return length
 
