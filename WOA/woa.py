@@ -6,22 +6,18 @@ from typing import List
 from Test_cases import sys1, sys2, sys3, sys4
 import random 
 
-# weight modifying for number of uavs
-#
-
 class WOA:
-    def __init__(self, n_whale, spiral_constant, n_iter, map_dim, sys, n_uavs): #, lb, ub):
+    def __init__(self, n_whale, spiral_constant, n_iter, map_dim, sys:System):
         self.n_whale = n_whale
         self.spiral_constant = spiral_constant
         self.n_iter = n_iter
         self.map_dim = map_dim
         
         self.whales = []
-        # self.prey = []
 
-        self.uavs = []
-        self.tasks = []
         self.sys:System = sys
+        self.uavs = sys.list_of_UAVs
+        self.tasks = sys.list_of_tasks
 
     def init_whales(self):
         self.whales:List[dict] = []
@@ -170,7 +166,7 @@ if __name__ == '__main__':
     n_whale = 5
     sys = sys1
     n_iter = 5
-    woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys, n_uavs=n_whale)
+    woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys)
     fitness_values, best_fitness, best_whale = woa.run()
 
     # plot
