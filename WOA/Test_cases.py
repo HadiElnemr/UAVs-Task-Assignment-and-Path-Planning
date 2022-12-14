@@ -1,7 +1,7 @@
 import copy
-
 from classes import *
-from Task_Assignment import isFeasible
+# from Task_Assignment import isFeasible
+
 
 #Test Case 1 : a simple one with 5 UAVs and 5 tasks in 10*10 map
 t1 = Task(Point(2, 5))
