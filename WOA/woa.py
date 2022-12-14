@@ -5,14 +5,8 @@ from woa_parameters import *
 from typing import List
 from Test_cases import sys1, sys2, sys3, sys4
 import random 
-# initialise whales, each whale is list of UAVs having path, each whale is a potential solution
-#
-# rmv obj_func
-# understand prey and rmv if not needed
+
 # weight modifying for number of uavs
-#
-#
-#
 #
 
 class WOA:
@@ -40,16 +34,6 @@ class WOA:
     def get_best_whale(self):
         return min(self.whales, key=itemgetter('fitness'))
 
-    # def init_prey(self):
-    #     tmp = [np.random.uniform(self.lb, self.ub, size=(len(self.lb),))]
-    #     self.prey['position'] = np.array(tmp)
-    #     self.prey['fitness'] = self.obj_func(self.prey['position'])
-
-    # def update_prey(self):
-    #     if self.whale['fitness'].min() < self.prey['fitness'][0]:
-    #         self.prey['position'][0] = self.whale['position'][self.whale['fitness'].argmin()]
-    #         self.prey['fitness'][0] = self.whale['fitness'].min()
-   
     def encircle(self, idx, A, C):
         best_whale = self.get_best_whale()
         best_whale_uavs:List[UAV] = best_whale['uavs']
@@ -58,11 +42,13 @@ class WOA:
             for position_idx,position in enumerate(uav.path):
                 if (position_idx+1)%(no_path_points+1) == 0:
                     continue
-                
-                position_update = self.encircle_position(position, best_whale_uavs[uav_idx].path[position_idx], A=Point(), C=)
+                A_np = A[uav_idx][position_idx]
+                C_np = C[uav_idx][position_idx]
+                A_position = Point(A_np[0], A_np[1])
+                C_position = Point(C_np[0], C_np[1])
 
-        d = np.abs(C[..., np.newaxis] * self.prey['position'] - self.whale['position'][idx])
-        self.whale['position'][idx] = np.clip(self.prey['position'][0] - A[..., np.newaxis] * d, self.lb, self.ub)
+                position_update = self.encircle_position(position, best_whale_uavs[uav_idx].path[position_idx], A_position, C_position)
+                uav.path[position_idx] = position_update
 
     def encircle_position(self, position:Point, position_star:Point, A:Point, C:Point):
         '''
@@ -72,7 +58,7 @@ class WOA:
         D = C.element_wise_mul(position_star).sub(position).abs()
         return position_star.sub(A.element_wise_mul(D))
 
-    def search_prey(self, idx, A:Point, C:Point):
+    def search_prey(self, idx, A, C):
         random_whale = self.whales[random.choice([w_idx for w_idx in range(n_whale) if w_idx != idx])]
         random_whale_uavs:List[UAV] = random_whale['uavs']
         uavs:List[UAV] = self.whales[idx]['uavs']
@@ -80,14 +66,14 @@ class WOA:
             for position_idx,position in enumerate(uav.path):
                 if (position_idx+1)%(no_path_points+1) == 0:
                     continue
-                A = 2 a
-                position_update = self.search_prey_position(position, random_whale_uavs[uav_idx].path[position_idx], A, C)
+                A_np = A[uav_idx][position_idx]
+                C_np = C[uav_idx][position_idx]
+                A_position = Point(A_np[0], A_np[1])
+                C_position = Point(C_np[0], C_np[1])
+
+                position_update = self.search_prey_position(position, random_whale_uavs[uav_idx].path[position_idx], A_position, C_position)
                 uav.path[position_idx] = position_update
-        
-        
-        
-        d = np.abs(C[..., np.newaxis] * random_whale - self.whale['position'][idx])
-        self.whale['position'][idx] = np.clip(random_whale - A[..., np.newaxis] * d, self.lb, self.ub)
+    
     
     def search_prey_position(self, position:Point, position_rand:Point, A:Point, C:Point):
         D = C.element_wise_mul(position_rand).sub(position)
@@ -104,7 +90,9 @@ class WOA:
             for position_idx,position in enumerate(uav.path):
                 if (position_idx+1)%(no_path_points+1) == 0:
                     continue
-                A = 2 a
+                # A_np = A[uav_idx][position_idx]
+                # A_position = Point(A_np[0], A_np[1])
+                # A = 2 a
                 position_update = self.spiral_update_position(position, best_whale_uavs[uav_idx].path[position_idx])
                 uav.path[position_idx] = position_update
 
@@ -121,19 +109,47 @@ class WOA:
         '''
         
         a = 2 - i_curr * (2 / self.n_iter)
-        r = random.random()
-        A = 2 * a * r - a ___
-        C = 2 * r
-        A_abs = A __
+        uavs = self.whales[w_idx]['uavs']
+        r = []
+        A = []
+        C = []
+        A_vals = np.array([])
+        for uav in uavs:
+            r_uav = []
+            A_uav = []
+            C_uav = []
+            for p_idx,position in uav.path:
+                r_uav.append(np.random.rand(2))
+                A_uav.append(2 * a * r_uav[-1] - a)
+                C_uav.append(2 * r_uav[-1])
+                if (p_idx+1)%(no_path_points+1) == 0:
+                    continue
+                A_vals = np.append(A_vals, A_uav[-1])
+
+            r.append(r_uav)
+            A.append(A_uav)
+            C.append(C_uav)
+        
+        
+        # r = np.random.rand(decision_vars_dim)
+        # r = random.random()
+        # A = 2 * a * r - a
+        # C = 2 * r
+        A_abs = np.linalg.norm(A_vals)
 
         p = random.random()
         if p < 0.5:
-            if A_abs < 1: # Encircle prey
-                self.encircle(w_idx, A, C__)
-            else: # Search for prey
-                self.search_prey(w_idx, A=, C=)
-        else: # Spiral update
-            self.spiral_update(w_idx, A=, C=)
+
+            if A_abs < 1: 
+                # Encircle prey
+                self.encircle(w_idx, A, C)
+            else: 
+                # Search for prey
+                self.search_prey(w_idx, A, C)
+        
+        else: 
+            # Spiral update
+            self.spiral_update(w_idx, A, C)
 
         search_idx = np.where((p < 0.5) & (abs(A) > 1))
         encircle_idx = np.where((p < 0.5) & (abs(A) <= 1))
@@ -147,9 +163,10 @@ class WOA:
         self.init_whales()
         
         for i_curr in range(self.n_iter):
-            #print("Iteration = ", n, " f(x) = ", self.prey['fitness'][0])
+            # print("Iteration = ", i_curr, "f(x) = ", self.prey['fitness'][0])
+
             for w_idx in range(self.n_whale):
-                dim = n_uavs * n_tasks * no_path_points
+                
                 # a = np.full((dim,1), 2 - i_curr * (2 / self.n_iter))
                 self.optimise_for_whale(w_idx, i_curr)
 
