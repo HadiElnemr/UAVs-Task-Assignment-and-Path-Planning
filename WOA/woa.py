@@ -17,7 +17,6 @@ import random
 
 class WOA:
     def __init__(self, n_whale, spiral_constant, n_iter, map_dim, sys, n_uavs): #, lb, ub):
-        # self.obj_func = obj_func
         self.n_whale = n_whale
         self.spiral_constant = spiral_constant
         self.n_iter = n_iter
@@ -50,28 +49,7 @@ class WOA:
     #     if self.whale['fitness'].min() < self.prey['fitness'][0]:
     #         self.prey['position'][0] = self.whale['position'][self.whale['fitness'].argmin()]
     #         self.prey['fitness'][0] = self.whale['fitness'].min()
-
-    def search_prey(self, idx, A:Point, C:Point):
-        random_whale = self.whales[random.choice([w_idx for w_idx in range(n_whale) if w_idx != idx])]
-        random_whale_uavs:List[UAV] = random_whale['uavs']
-        uavs:List[UAV] = self.whales[idx]['uavs']
-        for uav_idx,uav in enumerate(uavs):
-            for position_idx,position in enumerate(uav.path):
-                if (position_idx+1)%(no_path_points+1) == 0:
-                    continue
-                A = 2 a
-                position_update = self.search_prey_position(position, random_whale_uavs[uav_idx].path[position_idx], A, C)
-                uav.path[position_idx] = position_update
-        
-        
-        
-        d = np.abs(C[..., np.newaxis] * random_whale - self.whale['position'][idx])
-        self.whale['position'][idx] = np.clip(random_whale - A[..., np.newaxis] * d, self.lb, self.ub)
-    
-    def search_prey_position(self, position:Point, position_rand:Point, A:Point, C:Point):
-        D = C.element_wise_mul(position_rand).sub(position)
-        return position_rand.sub(A.element_wise_mul(D))
-
+   
     def encircle(self, idx, A, C):
         best_whale = self.get_best_whale()
         best_whale_uavs:List[UAV] = best_whale['uavs']
@@ -94,15 +72,48 @@ class WOA:
         D = C.element_wise_mul(position_star).sub(position).abs()
         return position_star.sub(A.element_wise_mul(D))
 
+    def search_prey(self, idx, A:Point, C:Point):
+        random_whale = self.whales[random.choice([w_idx for w_idx in range(n_whale) if w_idx != idx])]
+        random_whale_uavs:List[UAV] = random_whale['uavs']
+        uavs:List[UAV] = self.whales[idx]['uavs']
+        for uav_idx,uav in enumerate(uavs):
+            for position_idx,position in enumerate(uav.path):
+                if (position_idx+1)%(no_path_points+1) == 0:
+                    continue
+                A = 2 a
+                position_update = self.search_prey_position(position, random_whale_uavs[uav_idx].path[position_idx], A, C)
+                uav.path[position_idx] = position_update
+        
+        
+        
+        d = np.abs(C[..., np.newaxis] * random_whale - self.whale['position'][idx])
+        self.whale['position'][idx] = np.clip(random_whale - A[..., np.newaxis] * d, self.lb, self.ub)
+    
+    def search_prey_position(self, position:Point, position_rand:Point, A:Point, C:Point):
+        D = C.element_wise_mul(position_rand).sub(position)
+        return position_rand.sub(A.element_wise_mul(D))
+
+    
+
     def spiral_update(self, idx, A, C):
-        d_prime = np.abs(self.prey['position'] - self.whale['position'][idx])
-        l = np.random.uniform(-1, 1, size=len(idx[0]))
-        self.whale["position"][idx] = np.clip(
-            d_prime * np.exp(self.spiral_constant * l)[..., np.newaxis] * np.cos(2 * np.pi * l)[..., np.newaxis]
-            + self.prey["position"],
-            self.lb,
-            self.ub,
-        )
+        best_whale = self.get_best_whale()
+        best_whale_uavs:List[UAV] = best_whale['uavs']
+        uavs:List[UAV] = self.whales[idx]['uavs']
+        
+        for uav_idx,uav in enumerate(uavs):
+            for position_idx,position in enumerate(uav.path):
+                if (position_idx+1)%(no_path_points+1) == 0:
+                    continue
+                A = 2 a
+                position_update = self.spiral_update_position(position, best_whale_uavs[uav_idx].path[position_idx])
+                uav.path[position_idx] = position_update
+
+    def spiral_update_position(self, position:Point, position_star:Point):
+        D_prime = position_star.sub(position).abs()
+        l = random.random()
+        exp_calc = math.exp(self.spiral_constant * l)
+        cos_calc = math.cos(2*math.pi*l)
+        return D_prime.element_wise_mul(Point(x=exp_calc, y=exp_calc)).element_wise_mul(Point(x=cos_calc,y=cos_calc)).add(position_star)
 
     def optimise_for_whale(self, w_idx, i_curr):
         '''
