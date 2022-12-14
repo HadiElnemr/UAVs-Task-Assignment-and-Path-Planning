@@ -30,7 +30,6 @@ class WOA:
             self.whales[-1]['fitness'] = System.get_fitness(self.whales[-1]['uavs'], 100)
             assert type(self.whales[-1]['uavs']) is list
             
-
     def get_best_whale(self):
         return min(self.whales, key=itemgetter('fitness'))
 
@@ -74,12 +73,9 @@ class WOA:
                 position_update = self.search_prey_position(position, random_whale_uavs[uav_idx].path[position_idx], A_position, C_position)
                 uav.path[position_idx] = position_update
     
-    
     def search_prey_position(self, position:Point, position_rand:Point, A:Point, C:Point):
         D = C.element_wise_mul(position_rand).sub(position)
         return position_rand.sub(A.element_wise_mul(D))
-
-    
 
     def spiral_update(self, idx, A, C):
         best_whale = self.get_best_whale()
@@ -90,9 +86,6 @@ class WOA:
             for position_idx,position in enumerate(uav.path):
                 if (position_idx+1)%(no_path_points+1) == 0:
                     continue
-                # A_np = A[uav_idx][position_idx]
-                # A_position = Point(A_np[0], A_np[1])
-                # A = 2 a
                 position_update = self.spiral_update_position(position, best_whale_uavs[uav_idx].path[position_idx])
                 uav.path[position_idx] = position_update
 
@@ -103,7 +96,7 @@ class WOA:
         cos_calc = math.cos(2*math.pi*l)
         return D_prime.element_wise_mul(Point(x=exp_calc, y=exp_calc)).element_wise_mul(Point(x=cos_calc,y=cos_calc)).add(position_star)
 
-    def optimise_for_whale(self, w_idx, i_curr):
+    def update_whale(self, w_idx, i_curr):
         '''
         update variables for whales
         '''
@@ -130,54 +123,54 @@ class WOA:
             A.append(A_uav)
             C.append(C_uav)
         
-        
-        # r = np.random.rand(decision_vars_dim)
-        # r = random.random()
-        # A = 2 * a * r - a
-        # C = 2 * r
         A_abs = np.linalg.norm(A_vals)
-
         p = random.random()
-        if p < 0.5:
 
+        if p < 0.5:
             if A_abs < 1: 
-                # Encircle prey
+            # Encircle prey
                 self.encircle(w_idx, A, C)
             else: 
-                # Search for prey
+            # Search for prey
                 self.search_prey(w_idx, A, C)
-        
         else: 
             # Spiral update
             self.spiral_update(w_idx, A, C)
 
-        search_idx = np.where((p < 0.5) & (abs(A) > 1))
-        encircle_idx = np.where((p < 0.5) & (abs(A) <= 1))
-        bubbleNet_idx = np.where(p >= 0.5)
-        self.search(search_idx, A[search_idx], C[search_idx])
-        self.encircle(encircle_idx, A[encircle_idx], C[encircle_idx])
-        self.bubble_net(bubbleNet_idx)
-        self.whale['fitness'] = self.obj_func(self.whale['position'])
+        self.whales[w_idx]['fitness'] = System.get_fitness(self.whales[w_idx]['uavs'], 100, self.sys)
+        return self.whales[w_idx]['fitness']
 
     def run(self):
         self.init_whales()
-        
+        fitness_values = []
+        best_whale = self.get_best_whale()
+        best_fitness = best_whale['fitness']
+        print('initial best fitness = ', best_fitness)
+
         for i_curr in range(self.n_iter):
-            # print("Iteration = ", i_curr, "f(x) = ", self.prey['fitness'][0])
+            print("Iteration = ", i_curr, "best fitness = ", best_fitness)
+            fitness_for_iteration = []
 
-            for w_idx in range(self.n_whale):
-                
-                # a = np.full((dim,1), 2 - i_curr * (2 / self.n_iter))
-                self.optimise_for_whale(w_idx, i_curr)
+            for w_idx in range(self.n_whale):                
+                fitness = self.update_whale(w_idx, i_curr)
+                fitness_for_iteration.append(fitness)
 
-            # self.update_prey()
-            # f_values.append(self.prey['fitness'][0])
-        optimal_x = self.prey['position'].squeeze()
-        return f_values, optimal_x
+                if fitness < best_fitness:
+                    best_fitness = fitness
+                    best_whale_idx = w_idx
+            fitness_values.append(fitness_for_iteration)
+        
+        best_whale = self.get_best_whale()
+        print('final best fitness =', best_whale['fitness'])
+        
+        return fitness_values, best_whale['fitness'], best_whale
 
 
 if __name__ == '__main__':
     n_whale = 5
     sys = sys1
-    woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys)
-    woa.run()
+    n_iter = 5
+    woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys, n_uavs=n_whale)
+    fitness_values, best_fitness, best_whale = woa.run()
+
+    # plot
