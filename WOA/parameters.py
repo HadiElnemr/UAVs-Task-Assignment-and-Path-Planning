@@ -1,7 +1,7 @@
-dim_map = 100
-x_map = 100
-y_map = 100
-i_max = 500
+dim_map = None
+x_map = None
+y_map = None
+i_max = None
 
 # paramaters
 shift = 5
