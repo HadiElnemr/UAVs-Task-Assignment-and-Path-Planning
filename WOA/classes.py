@@ -2,7 +2,8 @@ import math
 import random
 import copy
 from typing import List
-from parameters import costs,i_max,n_tasks,n_uavs,no_path_points,shift_x,shift_y,tasks,uavs,x_map,y_map
+# from parameters import costs,i_max,n_tasks,n_uavs,no_path_points,shift_x,shift_y,tasks,uavs,x_map,y_map
+from woa_parameters import *
 from matplotlib import pyplot as plt
 
 
@@ -72,7 +73,7 @@ class Obstacles:
 
 class Task:
   def __init__(self, position):
-    self.position=position
+    self.position:Point=position
   
   def __str__(self):
     return str(self.position)
@@ -95,7 +96,6 @@ class UAV:
     length = 0
     if self.number_of_assigned_tasks() > 0:
       length = self.position.get_distance(self.path[0])
-      
       for i in range(len(self.path)-1):
         length = length + self.path[i].get_distance(self.path[i+1])
     
