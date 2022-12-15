@@ -180,6 +180,27 @@ class WOA:
         
         return fitness_values, best_whale['fitness'], best_whale
 
+def plot(uavs:List[UAV], tasks:List[Task]):
+    for task in tasks:
+        plt.plot(task.position.x, task.position.y, marker="o", markersize=10, markerfacecolor="green")
+    
+    for i,uav in enumerate(uavs):
+        points_x = [uav.position.x]
+        points_y = [uav.position.y]
+        plt.plot(uav.position.x, uav.position.y, marker="o", markersize=10, markerfacecolor="red")
+        
+        for point in uav.path:
+            points_x += [point.x]
+            points_y += [point.y]
+        plt.plot(points_x, points_y, '-o', markersize=5)
+        # for i in range(len(points_x)):
+        #     print(points_x[i], points_y[i])
+        print()
+    plt.xlim([0, map_dim])
+    plt.ylim([0, map_dim])
+    plt.grid()
+    plt.show()
+
 
 if __name__ == '__main__':
     n_whale = 5
@@ -187,5 +208,5 @@ if __name__ == '__main__':
     n_iter = 5
     woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys)
     fitness_values, best_fitness, best_whale = woa.run()
-
-    # plot
+    tasks = sys.list_of_tasks
+    plot(best_whale['uavs'], tasks=tasks)
