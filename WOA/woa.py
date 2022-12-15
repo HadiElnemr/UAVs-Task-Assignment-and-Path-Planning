@@ -203,9 +203,25 @@ def plot(uavs:List[UAV], tasks:List[Task]):
 
 
 if __name__ == '__main__':
-    n_whale = 5
-    sys = sys1
-    n_iter = 5
+    
+    n_whale = 100
+    n_iter = 100
+    map_dim = None
+    x_map = map_dim
+    y_map = map_dim
+
+    map_param = [(10, 10), (100, 100), (100, 100), (1000, 1000)]
+
+    sys_no = 4
+    systems = [sys1, sys2, sys3, sys4]
+    sys = systems[sys_no - 1]
+    x_map = map_param[sys_no - 1][0]
+    y_map = map_param[sys_no - 1][1]
+    map_dim = x_map
+
+    sys.assign_random_tasks()
+    for uav in sys.list_of_UAVs:
+        print(len(uav.list_of_tasks))
     woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys)
     fitness_values, best_fitness, best_whale = woa.run()
     tasks = sys.list_of_tasks
