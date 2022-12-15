@@ -111,7 +111,7 @@ class WOA:
         '''
         update variables for whales
         '''
-        
+        prev = self.whales[w_idx]['fitness']
         a = 2 - i_curr * (2 / self.n_iter)
         uavs = self.whales[w_idx]['uavs']
         r = []
@@ -122,7 +122,7 @@ class WOA:
             r_uav = []
             A_uav = []
             C_uav = []
-            for p_idx,position in uav.path:
+            for p_idx,position in enumerate(uav.path):
                 r_uav.append(np.random.rand(2))
                 A_uav.append(2 * a * r_uav[-1] - a)
                 C_uav.append(2 * r_uav[-1])
@@ -133,7 +133,7 @@ class WOA:
             r.append(r_uav)
             A.append(A_uav)
             C.append(C_uav)
-        
+
         A_abs = np.linalg.norm(A_vals)
         p = random.random()
 
@@ -147,8 +147,8 @@ class WOA:
         else: 
             # Spiral update
             self.spiral_update(w_idx, A, C)
-
         self.whales[w_idx]['fitness'] = System.get_fitness(self.whales[w_idx]['uavs'], 100, self.sys)
+
         return self.whales[w_idx]['fitness']
 
     def run(self):
@@ -159,6 +159,10 @@ class WOA:
         print('initial best fitness = ', best_fitness)
 
         for i_curr in range(self.n_iter):
+            tasks = sys.list_of_tasks
+            # plot(best_whale['uavs'], tasks=tasks)
+            best_whale = self.get_best_whale()
+            best_fitness = best_whale['fitness']
             print("Iteration = ", i_curr, "best fitness = ", best_fitness)
             fitness_for_iteration = []
 
