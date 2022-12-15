@@ -4,6 +4,7 @@ from operator import itemgetter
 from woa_parameters import *
 from typing import List
 from Test_cases import sys1, sys2, sys3, sys4
+from matplotlib import pyplot as plt
 import random 
 
 class WOA:
@@ -13,22 +14,33 @@ class WOA:
         self.n_iter = n_iter
         self.map_dim = map_dim
         
-        self.whales = []
+        self.whales:List[dict] = []
 
         self.sys:System = sys
         self.uavs = sys.list_of_UAVs
         self.tasks = sys.list_of_tasks
 
     def init_whales(self):
-        self.whales:List[dict] = []
+        self.whales = []
         for _ in range(self.n_whale):
             self.whales.append({'uavs': self.sys.initRandomSoln(), 'fitness':np.nan})
             self.whales[-1]['fitness'] = System.get_fitness(self.whales[-1]['uavs'], 100)
             assert type(self.whales[-1]['uavs']) is list
+            assert type(self.whales[-1]['fitness']) is float
             
     def get_best_whale(self):
         return min(self.whales, key=itemgetter('fitness'))
-
+    
+    def cap_position(position, map_dim):
+        if position.x > map_dim:
+            position.x = map_dim - 1
+        if position.y > map_dim:
+            position.y = map_dim - 1
+        if position.x < 0:
+            position.x = 0 + 1
+        if position.y < 0:
+            position.y = 0 + 1
+    
     def encircle(self, idx, A, C):
         best_whale = self.get_best_whale()
         best_whale_uavs:List[UAV] = best_whale['uavs']
@@ -43,6 +55,7 @@ class WOA:
                 C_position = Point(C_np[0], C_np[1])
 
                 position_update = self.encircle_position(position, best_whale_uavs[uav_idx].path[position_idx], A_position, C_position)
+                WOA.cap_position(position_update, self.map_dim)
                 uav.path[position_idx] = position_update
 
     def encircle_position(self, position:Point, position_star:Point, A:Point, C:Point):
@@ -67,6 +80,7 @@ class WOA:
                 C_position = Point(C_np[0], C_np[1])
 
                 position_update = self.search_prey_position(position, random_whale_uavs[uav_idx].path[position_idx], A_position, C_position)
+                WOA.cap_position(position_update, self.map_dim)
                 uav.path[position_idx] = position_update
     
     def search_prey_position(self, position:Point, position_rand:Point, A:Point, C:Point):
@@ -83,6 +97,7 @@ class WOA:
                 if (position_idx+1)%(no_path_points+1) == 0:
                     continue
                 position_update = self.spiral_update_position(position, best_whale_uavs[uav_idx].path[position_idx])
+                WOA.cap_position(position_update, self.map_dim)
                 uav.path[position_idx] = position_update
 
     def spiral_update_position(self, position:Point, position_star:Point):
