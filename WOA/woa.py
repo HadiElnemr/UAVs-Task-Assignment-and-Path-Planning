@@ -200,21 +200,28 @@ if __name__ == '__main__':
     
     # params of test cases
     systems = [sys1, sys2, sys3, sys4]
-    sys = systems[sys_no - 1]
+    sys = copy.deepcopy(systems[sys_no - 1])
     x_map = map_param[sys_no - 1][0]
     y_map = map_param[sys_no - 1][1]
     map_dim = x_map
     n_whale, spiral_constant, n_iter = woa_param[sys_no - 1]
 
-    sys.assign_random_tasks()
-    # bwoa_task_assignment()
 
-    for uav in sys.list_of_UAVs:
-        print(len(uav.list_of_tasks))
-    woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys)
-    fitness_values, best_fitnesses, best_fitness, best_whale = woa.run()
+    
     tasks = sys.list_of_tasks
-    # plot(best_whale['uavs'], tasks=tasks)
-    # print(best_fitnesses)
-    plot_fitnesses(n_iter, best_fitnesses)
+    # plot_paths(best_whale['uavs'], tasks=tasks, map_dim=map_dim)
+    # plot_fitnesses(n_iter, best_fitnesses)
+
+    costs = []
+    for _ in range(20):
+        print('iteration no', _)
+        sys = copy.deepcopy(systems[sys_no - 1])
+        sys.assign_random_tasks()
+        woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys)
+        fitness_values, best_fitnesses, best_fitness, best_whale = woa.run()
+        costs.append(best_fitness)
+    print("Mean:", mean(costs))
+    print("Standard Deviation:", stdev(costs))
+    # print("The costs are as follows: ", costs)
+    print("Finished")
 
