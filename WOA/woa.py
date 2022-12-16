@@ -33,13 +33,13 @@ class WOA:
     
     def cap_position(position, map_dim):
         if position.x > map_dim:
-            position.x = map_dim - 1
+            position.x = map_dim - 0.1
         if position.y > map_dim:
-            position.y = map_dim - 1
+            position.y = map_dim - 0.1
         if position.x < 0:
-            position.x = 0 + 1
+            position.x = 0 + 0.1
         if position.y < 0:
-            position.y = 0 + 1
+            position.y = 0 + 0.1
     
     def encircle(self, idx, A, C):
         best_whale = self.get_best_whale()
@@ -102,7 +102,7 @@ class WOA:
 
     def spiral_update_position(self, position:Point, position_star:Point):
         D_prime = position_star.sub(position).abs()
-        l = random.random()
+        l = random.random() * 2 - 1   # -1<l<1 
         exp_calc = math.exp(self.spiral_constant * l)
         cos_calc = math.cos(2*math.pi*l)
         return D_prime.element_wise_mul(Point(x=exp_calc, y=exp_calc)).element_wise_mul(Point(x=cos_calc,y=cos_calc)).add(position_star)
@@ -154,6 +154,7 @@ class WOA:
     def run(self):
         self.init_whales()
         fitness_values = []
+        best_fitnesses = []
         best_whale = self.get_best_whale()
         best_fitness = best_whale['fitness']
         print('initial best fitness = ', best_fitness)
@@ -161,8 +162,6 @@ class WOA:
         for i_curr in range(self.n_iter):
             tasks = sys.list_of_tasks
             # plot(best_whale['uavs'], tasks=tasks)
-            best_whale = self.get_best_whale()
-            best_fitness = best_whale['fitness']
             print("Iteration = ", i_curr, "best fitness = ", best_fitness)
             fitness_for_iteration = []
 
@@ -173,21 +172,25 @@ class WOA:
                 if fitness < best_fitness:
                     best_fitness = fitness
                     best_whale_idx = w_idx
+            
+            best_whale = self.get_best_whale()
+            best_fitness = best_whale['fitness']
+            best_fitnesses.append(best_fitness)
             fitness_values.append(fitness_for_iteration)
         
         best_whale = self.get_best_whale()
         print('final best fitness =', best_whale['fitness'])
         
-        return fitness_values, best_whale['fitness'], best_whale
+        return fitness_values, best_fitnesses, best_whale['fitness'], best_whale
 
 def plot(uavs:List[UAV], tasks:List[Task]):
     for task in tasks:
-        plt.plot(task.position.x, task.position.y, marker="o", markersize=10, markerfacecolor="green")
+        plt.plot(task.position.x, task.position.y, marker="o", markersize=14, markerfacecolor="green", markeredgecolor='green')
     
     for i,uav in enumerate(uavs):
         points_x = [uav.position.x]
         points_y = [uav.position.y]
-        plt.plot(uav.position.x, uav.position.y, marker="o", markersize=10, markerfacecolor="red")
+        plt.plot(uav.position.x, uav.position.y, marker="o", markersize=12, markerfacecolor="red")
         
         for point in uav.path:
             points_x += [point.x]
@@ -211,18 +214,30 @@ if __name__ == '__main__':
     y_map = map_dim
 
     map_param = [(10, 10), (100, 100), (100, 100), (1000, 1000)]
+    woa_param = [(40,5,50),(50,4,100),(50,5,100),(100,3,100)] #n_whale, spiral_constant, n_iter
 
-    sys_no = 4
+    sys_no = int(input('Input Benchmark number: ')) # 1->4
+    
+    # params of test cases
     systems = [sys1, sys2, sys3, sys4]
     sys = systems[sys_no - 1]
     x_map = map_param[sys_no - 1][0]
     y_map = map_param[sys_no - 1][1]
     map_dim = x_map
+    n_whale, spiral_constant, n_iter = woa_param[sys_no - 1]
 
     sys.assign_random_tasks()
+    # bwoa_task_assignment()
+
     for uav in sys.list_of_UAVs:
         print(len(uav.list_of_tasks))
     woa = WOA(n_whale, spiral_constant, n_iter, map_dim, sys=sys)
-    fitness_values, best_fitness, best_whale = woa.run()
+    fitness_values, best_fitnesses, best_fitness, best_whale = woa.run()
     tasks = sys.list_of_tasks
-    plot(best_whale['uavs'], tasks=tasks)
+    # plot(best_whale['uavs'], tasks=tasks)
+
+    for fitness_values_per_iter in fitness_values:
+        # print(len(fitness_values_per_iter))
+
+        # pass
+
