@@ -6,7 +6,8 @@ from typing import List
 from Test_cases import sys1, sys2, sys3, sys4
 from matplotlib import pyplot as plt
 import random 
-from plotting import plot_fitnesses
+from plotting import plot_fitnesses, plot_paths
+from statistics import mean, median, stdev
 
 class WOA:
     def __init__(self, n_whale, spiral_constant, n_iter, map_dim, sys:System):
@@ -183,28 +184,6 @@ class WOA:
         print('final best fitness =', best_whale['fitness'])
         
         return fitness_values, best_fitnesses, best_whale['fitness'], best_whale
-
-def plot(uavs:List[UAV], tasks:List[Task]):
-    for task in tasks:
-        plt.plot(task.position.x, task.position.y, marker="o", markersize=14, markerfacecolor="green", markeredgecolor='green')
-    
-    for i,uav in enumerate(uavs):
-        points_x = [uav.position.x]
-        points_y = [uav.position.y]
-        plt.plot(uav.position.x, uav.position.y, marker="o", markersize=12, markerfacecolor="red")
-        
-        for point in uav.path:
-            points_x += [point.x]
-            points_y += [point.y]
-        plt.plot(points_x, points_y, '-o', markersize=5)
-        # for i in range(len(points_x)):
-        #     print(points_x[i], points_y[i])
-        print()
-    plt.xlim([0, map_dim])
-    plt.ylim([0, map_dim])
-    plt.grid()
-    plt.show()
-
 
 if __name__ == '__main__':
     
