@@ -6,6 +6,7 @@ from typing import List
 from Test_cases import sys1, sys2, sys3, sys4
 from matplotlib import pyplot as plt
 import random 
+from plotting import plot_fitnesses
 
 class WOA:
     def __init__(self, n_whale, spiral_constant, n_iter, map_dim, sys:System):
@@ -214,7 +215,7 @@ if __name__ == '__main__':
     y_map = map_dim
 
     map_param = [(10, 10), (100, 100), (100, 100), (1000, 1000)]
-    woa_param = [(40,5,50),(50,4,100),(50,5,100),(100,3,100)] #n_whale, spiral_constant, n_iter
+    woa_param = [(40,5,100),(50,4,200),(50,5,200),(100,3,200)] #n_whale, spiral_constant, n_iter
 
     sys_no = int(input('Input Benchmark number: ')) # 1->4
     
@@ -235,9 +236,6 @@ if __name__ == '__main__':
     fitness_values, best_fitnesses, best_fitness, best_whale = woa.run()
     tasks = sys.list_of_tasks
     # plot(best_whale['uavs'], tasks=tasks)
-
-    for fitness_values_per_iter in fitness_values:
-        # print(len(fitness_values_per_iter))
-
-        # pass
+    # print(best_fitnesses)
+    plot_fitnesses(n_iter, best_fitnesses)
 
