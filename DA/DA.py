@@ -37,10 +37,10 @@ class DA:
                 self.flies[-1]['uavs'], 100)
             assert type(self.flies[-1]['uavs']) is list
             assert type(self.flies[-1]['fitness']) is float
-    
-    def get_distance_fly_to_fly(self, fly1:dict, fly2:dict):
-        uavs1:List[UAV] = fly1['uavs']
-        uavs2:List[UAV] = fly2['uavs']
+
+    def get_distance_fly_to_fly(self, fly1: dict, fly2: dict):
+        uavs1: List[UAV] = fly1['uavs']
+        uavs2: List[UAV] = fly2['uavs']
         dist = 0
         for uav_idx, uav in enumerate(uavs1):
             for point_idx, point in enumerate(uav.path):
@@ -48,7 +48,7 @@ class DA:
                     continue
                 dist += point.get_distance(uavs2[uav_idx].path[point_idx])
         return dist
-    
+
     def get_best_fly(self):
         return min(self.flies, key=itemgetter('fitness'))
 
@@ -65,88 +65,66 @@ class DA:
         if position.y < 0:
             position.y = 0 + 0.1
 
-    def separate(self, curr_fly:dict, neighbour_flies:List[dict]):
+    def separation(self, curr_fly: dict, neighbour_flies: List[dict]):
         # S = - Sum(X - Xj)
-        for uav_idx, uav in enumerate(curr_fly['uavs']):
-            for position_idx,position in enumerate(uav.path):
-                if (position_idx+1)%(no_path_points+1) == 0:
+
+        S: List[List[Point]] = []
+        # Prepare S
+        for uav in curr_fly['uavs']:
+            S.append([])
+            for position_idx, position in enumerate(uav.path):
+                if (position_idx+1) % (no_path_points+1) == 0:
                     continue
-                self.separate_position()
-        
+                S[-1].append(Point(0, 0))
+
+        # Access: S[uav_idx][pos_idx]
+
+        for fly_idx, neighbour_fly in enumerate(neighbour_flies):
+            # S += X - Xj
+            for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
+                for position_idx, neighbour_position in enumerate(neighbour_uav.path):
+
+                    if (position_idx+1) % (no_path_points+1) == 0:
+                        continue
+
+                    curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
+                    S[uav_idx][position_idx] = S[uav_idx][position_idx].add(
+                        curr_position.sub(neighbour_position))
+
+        # Multiply result by -1
+        for i in range(len(S)):
+            for j in range(len(S[i])):
+                S[i][j]: Point = S[i][j].mul(-1)
+
+    def alignment(self, curr_fly: dict, neighbour_flies: List[dict]):
+        # A = Sum(Vj) / N
+
+        A: List[List[Point]] = []
+        # Prepare A
+        for uav in curr_fly['uavs']:
+            A.append([])
+            for position_idx, position in enumerate(uav.path):
+                if (position_idx+1) % (no_path_points+1) == 0:
+                    continue
+                A[-1].append(Point(0, 0))
+
+        # Access: A[uav_idx][pos_idx]
+
+        for fly_idx, neighbour_fly in enumerate(neighbour_flies):
+            # S += X - Xj
+            for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
+                for position_idx, neighbour_position in enumerate(neighbour_uav.path):
+
+                    if (position_idx+1) % (no_path_points+1) == 0:
+                        continue
+
+                    curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
+                    A[uav_idx][position_idx] = A[uav_idx][position_idx].add(
+                        curr_position.sub(neighbour_position))
+
         pass
-        
-        # return pass
 
-
-    def separate_position(self, pos_idx1, pos_idx2):
-        pass
-    # def encircle(self, idx, A, C):
-    #     best_fly = self.get_best_fly()
-    #     best_fly_uavs:List[UAV] = best_fly['uavs']
-    #     uavs:List[UAV] = self.flies[idx]['uavs']
-    #     for uav_idx,uav in enumerate(uavs):
-    #         for position_idx,position in enumerate(uav.path):
-    #             if (position_idx+1)%(no_path_points+1) == 0:
-    #                 continue
-    #             A_np = A[uav_idx][position_idx]
-    #             C_np = C[uav_idx][position_idx]
-    #             A_position = Point(A_np[0], A_np[1])
-    #             C_position = Point(C_np[0], C_np[1])
-
-    #             position_update = self.encircle_position(position, best_fly_uavs[uav_idx].path[position_idx], A_position, C_position)
-    #             WOA.cap_position(position_update, self.map_dim)
-    #             uav.path[position_idx] = position_update
-
-    # def encircle_position(self, position:Point, position_star:Point, A:Point, C:Point):
-    #     '''
-    #     takes position, path position of best whale selected uav, C and A variables in the form of point
-    #     returns the updated uav path position
-    #     '''
-    #     D = C.element_wise_mul(position_star).sub(position).abs()
-    #     return position_star.sub(A.element_wise_mul(D))
-
-    # def search_prey(self, idx, A, C):
-    #     random_whale = self.flies[random.choice([w_idx for w_idx in range(number_of_flies) if w_idx != idx])]
-    #     random_whale_uavs:List[UAV] = random_whale['uavs']
-    #     uavs:List[UAV] = self.flies[idx]['uavs']
-    #     for uav_idx,uav in enumerate(uavs):
-    #         for position_idx,position in enumerate(uav.path):
-    #             if (position_idx+1)%(no_path_points+1) == 0:
-    #                 continue
-    #             A_np = A[uav_idx][position_idx]
-    #             C_np = C[uav_idx][position_idx]
-    #             A_position = Point(A_np[0], A_np[1])
-    #             C_position = Point(C_np[0], C_np[1])
-
-    #             position_update = self.search_prey_position(position, random_whale_uavs[uav_idx].path[position_idx], A_position, C_position)
-    #             WOA.cap_position(position_update, self.map_dim)
-    #             uav.path[position_idx] = position_update
-
-    # def search_prey_position(self, position:Point, position_rand:Point, A:Point, C:Point):
-    #     D = C.element_wise_mul(position_rand).sub(position)
-    #     return position_rand.sub(A.element_wise_mul(D))
-
-    # def spiral_update(self, idx, A, C):
-    #     best_fly = self.get_best_fly()
-    #     best_fly_uavs:List[UAV] = best_fly['uavs']
-    #     uavs:List[UAV] = self.flies[idx]['uavs']
-
-    #     for uav_idx,uav in enumerate(uavs):
-    #         for position_idx,position in enumerate(uav.path):
-    #             if (position_idx+1)%(no_path_points+1) == 0:
-    #                 continue
-    #             position_update = self.spiral_update_position(position, best_fly_uavs[uav_idx].path[position_idx])
-    #             WOA.cap_position(position_update, self.map_dim)
-    #             uav.path[position_idx] = position_update
-
-    # def spiral_update_position(self, position:Point, position_star:Point):
-    #     D_prime = position_star.sub(position).abs()
-    #     l = random.random() * 2 - 1   # -1<l<1
-    #     exp_calc = math.exp(self.spiral_constant * l)
-    #     cos_calc = math.cos(2*math.pi*l)
-    #     return D_prime.element_wise_mul(Point(x=exp_calc, y=exp_calc)).element_wise_mul(Point(x=cos_calc,y=cos_calc)).add(position_star)
-
-    def update_fly(self, fly_idx, i_curr, s:float, a:float, c:float, f:float, e:float):
+    def update_fly(self, fly_idx, i_curr, s: float, a: float, c: float, f: float, e: float):
         '''
         update variables for flies
 
@@ -154,7 +132,7 @@ class DA:
         description: updates decision variable of a fly
         outputs: fitness of updated fly
         '''
-        
+
         # find the neighbouring solutions
         neighbours_no = 0
         neighbour_flies = []
@@ -164,58 +142,56 @@ class DA:
             if self.get_distance_fly_to_fly(self.flies[fly_idx], self.flies[f2_idx]) < self.neighbourhood_radius:
                 neighbours_no += 1
                 neighbour_flies.append(self.flies[f2_idx])
-        
+
         uavs = self.flies[fly_idx]['uavs']
-        
+
         ###### Separation ######
-        self.separate(self.flies[fly_idx], neighbour_flies)
-
-
-
-
+        self.separation(self.flies[fly_idx], neighbour_flies)
+        ###### Alignment ######
+        self.alignment(self.flies[fly_idx], neighbour_flies)
 
         # r = []
         # A = []
         # C = []
         # A_vals = np.array([])
-        for uav in uavs:
-            # s_uav = []
-            # a_uav = []
-            # c_uav = []
-            # f_uav = []
-            # e_uav = []
+        # for uav in uavs:
+        # s_uav = []
+        # a_uav = []
+        # c_uav = []
+        # f_uav = []
+        # e_uav = []
 
-            for p_idx, position in enumerate(uav.path):
-                s_uav.append(np.random.rand(2))
-                a_uav.append(2 * a * r_uav[-1] - a)
-                c_uav.append(2 * r_uav[-1])
-                f_uav.append(2 * a * r_uav[-1] - a)
-                e_uav.append(2 * r_uav[-1])
-                if (p_idx+1) % (no_path_points+1) == 0:
-                    continue
-                A_vals = np.append(A_vals, A_uav[-1])
+        # for p_idx, position in enumerate(uav.path):
+        #     s_uav.append(np.random.rand(2))
+        #     a_uav.append(2 * a * r_uav[-1] - a)
+        #     c_uav.append(2 * r_uav[-1])
+        #     f_uav.append(2 * a * r_uav[-1] - a)
+        #     e_uav.append(2 * r_uav[-1])
+        #     if (p_idx+1) % (no_path_points+1) == 0:
+        #         continue
+        #     A_vals = np.append(A_vals, A_uav[-1])
 
-            r.append(r_uav)
-            A.append(A_uav)
-            C.append(C_uav)
+        # r.append(r_uav)
+        # A.append(A_uav)
+        # C.append(C_uav)
 
-        A_abs = np.linalg.norm(A_vals)
-        p = random.random()
+        # A_abs = np.linalg.norm(A_vals)
+        # p = random.random()
 
-        if p < 0.5:
-            if A_abs < 1:
-                # Encircle prey
-                self.encircle(w_idx, A, C)
-            else:
-                # Search for prey
-                self.search_prey(w_idx, A, C)
-        else:
-            # Spiral update
-            self.spiral_update(w_idx, A, C)
-        self.flies[w_idx]['fitness'] = System.get_fitness(
-            self.flies[w_idx]['uavs'], 100, self.sys)
-
-        return self.flies[w_idx]['fitness']
+        # if p < 0.5:
+        #     if A_abs < 1:
+        #         # Encircle prey
+        #         self.encircle(w_idx, A, C)
+        #     else:
+        #         # Search for prey
+        #         self.search_prey(w_idx, A, C)
+        # else:
+        #     # Spiral update
+        #     self.spiral_update(w_idx, A, C)
+        # self.flies[w_idx]['fitness'] = System.get_fitness(
+        #     self.flies[w_idx]['uavs'], 100, self.sys)
+#
+        # return self.flies[w_idx]['fitness']
 
     def run(self):
         self.init_flies()
@@ -225,9 +201,8 @@ class DA:
         best_fly = self.get_best_fly()
         best_fitness = best_fly['fitness']
         print('initial best fitness = ', best_fitness)
-        
-        self.neighbourhood_radius = map_dim
 
+        self.neighbourhood_radius = map_dim
 
         for i_curr in range(self.max_iter):
 
@@ -295,7 +270,7 @@ if __name__ == '__main__':
         # start = timeit.default_timer()
         sys = copy.deepcopy(systems[sys_no - 1])
 
-        ### ACO params
+        # ACO params
         number_of_ants = 10
         number_of_iterations = 50 if (sys_no) < 3 else 100
         initial_phermone = 0.5
@@ -306,7 +281,7 @@ if __name__ == '__main__':
         sys.list_of_UAVs = ACO_TaskAssignment(
             sys, number_of_ants, number_of_iterations, initial_phermone, rho, alpha, beta, Q)
         # sys.assign_random_tasks()
-        ### ACO Finished
+        # ACO Finished
 
         woa = DA(number_of_flies, spiral_constant, n_iter, map_dim, sys=sys)
         fitness_values, best_fitnesses, best_fitness, best_fly, best_flies = woa.run()
