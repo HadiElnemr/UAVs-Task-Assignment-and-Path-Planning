@@ -102,11 +102,13 @@ class UAV:
         self.list_of_tasks: List[Task] = list_of_tasks
         self.position: Point = position
         self.max_tasks = 3
-        self.DA_vel = Point(0, 0)
+        self.DA_velocities:List[Point] = []
+        # Point(0, 0)
 
-    def update_delta_pos(self, prev_pos) -> Point: 
-        self.DA_vel = self.position.sub(prev_pos)
-        return self.DA_vel
+    def update_DA_velocities(self, prev_positions:List[Point]) -> List[Point]: 
+        for vel_idx, vel in enumerate(self.DA_velocities):
+            self.DA_velocities[vel_idx] = self.DA_velocities[vel_idx].sub(prev_positions[vel_idx])
+        return self.DA_velocities
         
     def number_of_assigned_tasks(self):
         return len(self.list_of_tasks)
@@ -159,14 +161,18 @@ class System:
         self.candidate_Obj = None  # the objective for the current candidate
 
     # generate path and random middle points in the path of the UAV between itself and its tasks
-    def initRandomSoln(self):
-        ret_uavs = []
+    def initRandomSoln(self) -> List[UAV]:
+        ret_uavs:List[UAV] = []
         for uav in copy.deepcopy(self.list_of_UAVs):
             uav.path = []
             for task in uav.list_of_tasks:  # initial path
                 for _ in range(no_path_points):
-                    uav.path.append(Point.rand_position(x_map, y_map))
+                    rand_point = Point.rand_position(x_map, y_map)
+                    uav.path.append(rand_point)
+                    uav.DA_velocities.append(copy.deepcopy(rand_point))
                 uav.path.append(task.position)
+                uav.DA_velocities.append(Point(0,0))
+
             ret_uavs.append(uav)
         return ret_uavs
 
