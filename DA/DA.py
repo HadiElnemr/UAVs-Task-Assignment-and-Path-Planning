@@ -95,37 +95,74 @@ class DA:
         for i in range(len(S)):
             for j in range(len(S[i])):
                 S[i][j]: Point = S[i][j].mul(-1)
+        return S
 
     def alignment(self, curr_fly: dict, neighbour_flies: List[dict]):
         # A = Sum(Vj) / N
 
         A: List[List[Point]] = []
-        # Prepare A
+        
+        # Prepare A: for each path point for each uav, there is a velocity for that path point
         for uav in curr_fly['uavs']:
             A.append([])
             for position_idx, position in enumerate(uav.path):
-                if (position_idx+1) % (no_path_points+1) == 0:
-                    continue
+                # if (position_idx+1) % (no_path_points+1) == 0:
+                #     continue
                 A[-1].append(Point(0, 0))
-
-        # Access: A[uav_idx][pos_idx]
+            assert len(A[-1]) == len(uav.path)
+        assert len(A) == len(curr_fly['uavs'])
+       
+        # Access: A[uav_idx][vel_idx]
 
         for fly_idx, neighbour_fly in enumerate(neighbour_flies):
             # S += X - Xj
             for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
                 for vel_idx, neighbour_velocity in enumerate(neighbour_uav.DA_velocities):
-                for position_idx, neighbour_position in enumerate(neighbour_uav.path):
-                    if (position_idx+1) % (no_path_points+1) == 0:
+                    if (vel_idx+1) % (no_path_points+1) == 0:
                         continue
-
-                    curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
-                    A[uav_idx][position_idx] = A[uav_idx][position_idx].add(
-                        curr_position.sub(neighbour_position))
+                    A[uav_idx][vel_idx] = A[uav_idx][vel_idx].add(neighbour_velocity)
         
-        # Divide result by N: number of fliess
+        # Divide result by N: number of flies
         for i in range(len(A)):
             for j in range(len(A[i])):
                 A[i][j]: Point = A[i][j].mul(1/len(neighbour_flies))
+        return A
+
+    def cohesion(self, curr_fly: dict, neighbour_flies: List[dict]):
+        # C = Sum(Xj) / N - X
+
+        C: List[List[Point]] = []
+        # Prepare C
+        for uav in curr_fly['uavs']:
+            C.append([])
+            for position_idx, position in enumerate(uav.path):
+                if (position_idx+1) % (no_path_points+1) == 0:
+                    continue
+                C[-1].append(Point(0, 0))
+
+        # Access: C[uav_idx][pos_idx]
+
+        for fly_idx, neighbour_fly in enumerate(neighbour_flies):
+            # C += Xj
+            for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
+                for position_idx, neighbour_position in enumerate(neighbour_uav.path):
+
+                    if (position_idx+1) % (no_path_points+1) == 0:
+                        continue
+
+                    # curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
+                    C[uav_idx][position_idx] = C[uav_idx][position_idx].add(neighbour_position)
+        
+        # Divide result by N: number of flies
+        for i in range(len(C)):
+            for j in range(len(C[i])):
+                C[i][j]: Point = C[i][j].mul(1/len(neighbour_flies))
+        
+        # Subtract result from current fly position
+        for i,uav in enumerate(C):
+            for j,point in enumerate(uav.path):
+                C[i][j] -= curr_fly['uavs'][i][j]
+        return C
 
     def update_fly(self, fly_idx, i_curr, s: float, a: float, c: float, f: float, e: float):
         '''
