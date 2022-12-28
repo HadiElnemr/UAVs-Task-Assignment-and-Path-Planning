@@ -113,16 +113,19 @@ class DA:
         for fly_idx, neighbour_fly in enumerate(neighbour_flies):
             # S += X - Xj
             for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
+                for vel_idx, neighbour_velocity in enumerate(neighbour_uav.DA_velocities):
                 for position_idx, neighbour_position in enumerate(neighbour_uav.path):
-
                     if (position_idx+1) % (no_path_points+1) == 0:
                         continue
 
                     curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
                     A[uav_idx][position_idx] = A[uav_idx][position_idx].add(
                         curr_position.sub(neighbour_position))
-
-        pass
+        
+        # Divide result by N: number of fliess
+        for i in range(len(A)):
+            for j in range(len(A[i])):
+                A[i][j]: Point = A[i][j].mul(1/len(neighbour_flies))
 
     def update_fly(self, fly_idx, i_curr, s: float, a: float, c: float, f: float, e: float):
         '''
