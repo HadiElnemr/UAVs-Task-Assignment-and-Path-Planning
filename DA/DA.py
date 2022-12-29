@@ -73,8 +73,8 @@ class DA:
         for uav in curr_fly['uavs']:
             S.append([])
             for position_idx, position in enumerate(uav.path):
-                if (position_idx+1) % (no_path_points+1) == 0:
-                    continue
+                # if (position_idx+1) % (no_path_points+1) == 0:
+                #     continue
                 S[-1].append(Point(0, 0))
 
         # Access: S[uav_idx][pos_idx]
@@ -101,7 +101,7 @@ class DA:
         # A = Sum(Vj) / N
 
         A: List[List[Point]] = []
-        
+
         # Prepare A: for each path point for each uav, there is a velocity for that path point
         for uav in curr_fly['uavs']:
             A.append([])
@@ -111,7 +111,7 @@ class DA:
                 A[-1].append(Point(0, 0))
             assert len(A[-1]) == len(uav.path)
         assert len(A) == len(curr_fly['uavs'])
-       
+
         # Access: A[uav_idx][vel_idx]
 
         for fly_idx, neighbour_fly in enumerate(neighbour_flies):
@@ -120,8 +120,9 @@ class DA:
                 for vel_idx, neighbour_velocity in enumerate(neighbour_uav.DA_velocities):
                     if (vel_idx+1) % (no_path_points+1) == 0:
                         continue
-                    A[uav_idx][vel_idx] = A[uav_idx][vel_idx].add(neighbour_velocity)
-        
+                    A[uav_idx][vel_idx] = A[uav_idx][vel_idx].add(
+                        neighbour_velocity)
+
         # Divide result by N: number of flies
         for i in range(len(A)):
             for j in range(len(A[i])):
@@ -136,8 +137,8 @@ class DA:
         for uav in curr_fly['uavs']:
             C.append([])
             for position_idx, position in enumerate(uav.path):
-                if (position_idx+1) % (no_path_points+1) == 0:
-                    continue
+                # if (position_idx+1) % (no_path_points+1) == 0:
+                #     continue
                 C[-1].append(Point(0, 0))
 
         # Access: C[uav_idx][pos_idx]
@@ -151,16 +152,17 @@ class DA:
                         continue
 
                     # curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
-                    C[uav_idx][position_idx] = C[uav_idx][position_idx].add(neighbour_position)
-        
+                    C[uav_idx][position_idx] = C[uav_idx][position_idx].add(
+                        neighbour_position)
+
         # Divide result by N: number of flies
         for i in range(len(C)):
             for j in range(len(C[i])):
                 C[i][j]: Point = C[i][j].mul(1/len(neighbour_flies))
-        
+
         # Subtract result from current fly position
-        for i,uav in enumerate(C):
-            for j,point in enumerate(uav.path):
+        for i, uav in enumerate(C):
+            for j, point in enumerate(uav.path):
                 C[i][j] -= curr_fly['uavs'][i][j]
         return C
 
@@ -210,28 +212,6 @@ class DA:
         #     if (p_idx+1) % (no_path_points+1) == 0:
         #         continue
         #     A_vals = np.append(A_vals, A_uav[-1])
-
-        # r.append(r_uav)
-        # A.append(A_uav)
-        # C.append(C_uav)
-
-        # A_abs = np.linalg.norm(A_vals)
-        # p = random.random()
-
-        # if p < 0.5:
-        #     if A_abs < 1:
-        #         # Encircle prey
-        #         self.encircle(w_idx, A, C)
-        #     else:
-        #         # Search for prey
-        #         self.search_prey(w_idx, A, C)
-        # else:
-        #     # Spiral update
-        #     self.spiral_update(w_idx, A, C)
-        # self.flies[w_idx]['fitness'] = System.get_fitness(
-        #     self.flies[w_idx]['uavs'], 100, self.sys)
-#
-        # return self.flies[w_idx]['fitness']
 
     def run(self):
         self.init_flies()
