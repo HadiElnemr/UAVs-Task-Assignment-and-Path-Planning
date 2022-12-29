@@ -166,7 +166,57 @@ class DA:
                 C[i][j] -= curr_fly['uavs'][i][j]
         return C
 
-    def update_fly(self, fly_idx, i_curr, s: float, a: float, c: float, f: float, e: float):
+    def attraction(self, curr_fly: dict, food: dict):
+        # F = X+ - X
+
+        F: List[List[Point]] = []
+        # Prepare F
+        for uav in curr_fly['uavs']:
+            F.append([])
+            for position_idx, position in enumerate(uav.path):
+                # if (position_idx+1) % (no_path_points+1) == 0:
+                #     continue
+                F[-1].append(Point(0, 0))
+
+        # Access: F[uav_idx][pos_idx]
+
+        for uav_idx, food_uav in enumerate(food['uavs']):
+            for position_idx, food_position in enumerate(food_uav.path):
+
+                if (position_idx+1) % (no_path_points+1) == 0:
+                    continue
+
+                curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
+                F[uav_idx][position_idx] = F[uav_idx][position_idx].add(
+                    food_position.sub(curr_position))
+        return F
+
+    def distraction(self, curr_fly: dict, enemy: dict):
+        # E = X- + X
+
+        E: List[List[Point]] = []
+        # Prepare F
+        for uav in curr_fly['uavs']:
+            E.append([])
+            for position_idx, position in enumerate(uav.path):
+                # if (position_idx+1) % (no_path_points+1) == 0:
+                #     continue
+                E[-1].append(Point(0, 0))
+
+        # Access: F[uav_idx][pos_idx]
+
+        for uav_idx, enemy_uav in enumerate(enemy['uavs']):
+            for position_idx, enemy_position in enumerate(enemy_uav.path):
+
+                if (position_idx+1) % (no_path_points+1) == 0:
+                    continue
+
+                curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
+                E[uav_idx][position_idx] = E[uav_idx][position_idx].add(
+                    enemy_position.add(curr_position))
+        return E
+
+    def update_fly(self, fly_idx, i_curr, s: float, a: float, c: float, f: float, e: float, food: dict, enemy: dict):
         '''
         update variables for flies
 
@@ -188,30 +238,16 @@ class DA:
         uavs = self.flies[fly_idx]['uavs']
 
         ###### Separation ######
-        self.separation(self.flies[fly_idx], neighbour_flies)
+        S = self.separation(self.flies[fly_idx], neighbour_flies)
         ###### Alignment ######
-        self.alignment(self.flies[fly_idx], neighbour_flies)
+        A = self.alignment(self.flies[fly_idx], neighbour_flies)
+        ###### Cohesion ######
+        C = self.cohesion(self.flies[fly_idx], food)
+        ###### Attraction ######
+        A = self.attraction(self.flies[fly_idx], food)
+        ###### Distraction ######
+        D = self.distraction(self.flies[fly_idx], enemy)
 
-        # r = []
-        # A = []
-        # C = []
-        # A_vals = np.array([])
-        # for uav in uavs:
-        # s_uav = []
-        # a_uav = []
-        # c_uav = []
-        # f_uav = []
-        # e_uav = []
-
-        # for p_idx, position in enumerate(uav.path):
-        #     s_uav.append(np.random.rand(2))
-        #     a_uav.append(2 * a * r_uav[-1] - a)
-        #     c_uav.append(2 * r_uav[-1])
-        #     f_uav.append(2 * a * r_uav[-1] - a)
-        #     e_uav.append(2 * r_uav[-1])
-        #     if (p_idx+1) % (no_path_points+1) == 0:
-        #         continue
-        #     A_vals = np.append(A_vals, A_uav[-1])
 
     def run(self):
         self.init_flies()
@@ -241,7 +277,7 @@ class DA:
             fitness_for_iteration = []
 
             for fly_idx in range(self.number_of_flies):
-                fitness = self.update_fly(fly_idx, i_curr, s, a, c, f, e)
+                fitness = self.update_fly(fly_idx, i_curr, s, a, c, f, e, food, enemy)
                 fitness_for_iteration.append(fitness)
 
                 if fitness < best_fitness:
