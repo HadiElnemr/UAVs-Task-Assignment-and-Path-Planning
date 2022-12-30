@@ -57,13 +57,13 @@ class DA:
 
     def cap_position(self, position, map_dim):
         if position.x > map_dim:
-            position.x = map_dim - 1
+            position.x = map_dim - (random.random() * 5)
         if position.y > map_dim:
-            position.y = map_dim - 1
+            position.y = map_dim - (random.random() * 5)
         if position.x < 0:
-            position.x = 0 + 1
+            position.x = 0 + (random.random() * 5)
         if position.y < 0:
-            position.y = 0 + 1
+            position.y = 0 + (random.random() * 5)
 
     def separation(self, curr_fly: dict, neighbour_flies: List[dict]):
         # S = - Sum(X - Xj)
@@ -72,9 +72,7 @@ class DA:
         # Prepare S
         for uav in curr_fly['uavs']:
             S.append([])
-            for position_idx, position in enumerate(uav.path):
-                # if (position_idx+1) % (no_path_points+1) == 0:
-                #     continue
+            for position in uav.path:
                 S[-1].append(Point(0, 0))
         
         if len(neighbour_flies) < 1:
@@ -82,11 +80,10 @@ class DA:
 
         # Access: S[uav_idx][pos_idx]
 
-        for fly_idx, neighbour_fly in enumerate(neighbour_flies):
+        for neighbour_fly in neighbour_flies:
             # S += X - Xj
             for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
                 for position_idx, neighbour_position in enumerate(neighbour_uav.path):
-
                     if (position_idx+1) % (no_path_points+1) == 0:
                         continue
 
@@ -108,9 +105,7 @@ class DA:
         # Prepare A: for each path point for each uav, there is a velocity for that path point
         for uav in curr_fly['uavs']:
             A.append([])
-            for position_idx, position in enumerate(uav.path):
-                # if (position_idx+1) % (no_path_points+1) == 0:
-                #     continue
+            for position in uav.path:
                 A[-1].append(Point(0, 0))
             assert len(A[-1]) == len(uav.path)
         assert len(A) == len(curr_fly['uavs'])
@@ -120,8 +115,8 @@ class DA:
 
         # Access: A[uav_idx][vel_idx]
 
-        for fly_idx, neighbour_fly in enumerate(neighbour_flies):
-            # S += X - Xj
+        for neighbour_fly in neighbour_flies:
+            # A += Vj
             for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
                 for vel_idx, neighbour_velocity in enumerate(neighbour_uav.DA_velocities):
                     if (vel_idx+1) % (no_path_points+1) == 0:
@@ -142,9 +137,7 @@ class DA:
         # Prepare C
         for uav in curr_fly['uavs']:
             C.append([])
-            for position_idx, position in enumerate(uav.path):
-                # if (position_idx+1) % (no_path_points+1) == 0:
-                #     continue
+            for position in uav.path:
                 C[-1].append(Point(0, 0))
 
         if len(neighbour_flies) < 1:
@@ -152,15 +145,13 @@ class DA:
 
         # Access: C[uav_idx][pos_idx]
 
-        for fly_idx, neighbour_fly in enumerate(neighbour_flies):
+        for neighbour_fly in neighbour_flies:
             # C += Xj
             for uav_idx, neighbour_uav in enumerate(neighbour_fly['uavs']):
                 for position_idx, neighbour_position in enumerate(neighbour_uav.path):
-
                     if (position_idx+1) % (no_path_points+1) == 0:
                         continue
 
-                    # curr_position: Point = curr_fly['uavs'][uav_idx].path[position_idx]
                     C[uav_idx][position_idx] = C[uav_idx][position_idx].add(
                         neighbour_position)
 
@@ -348,7 +339,7 @@ if __name__ == '__main__':
 
     map_param = [(10, 10), (100, 100), (100, 100), (1000, 1000)]
     # number_of_flies, n_iter
-    da_param = [(30, 400), (50, 800), (50, 200), (100, 200)]
+    da_param = [(30, 400), (40, 400), (50, 200), (100, 200)]
 
     # sys_no = int(input('Input Benchmark number: '))  # 1->4
     sys_no = 2
