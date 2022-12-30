@@ -8,21 +8,20 @@ from matplotlib import pyplot as plt
 import random
 from plotting import plot_fitnesses, plot_paths
 from statistics import mean, median, stdev
+from math import gamma, sin, pi
 # from ACO.Task_Assignment import ACO_TaskAssignment
 import timeit
-
 # from ACO.classes import UAV
 
 
 class DA:
     def __init__(self, search_agents_no, max_iter, map_dim, sys: System):
         self.number_of_flies = search_agents_no
-        # self.spiral_constant = spiral_constant
         self.max_iter = max_iter
         self.map_dim = map_dim
 
         self.flies: List[dict] = []
-        self.neighbourhood_radius = 0
+        self.neighbourhood_radius = 1000
 
         self.sys: System = sys
         self.uavs = sys.list_of_UAVs
@@ -45,6 +44,7 @@ class DA:
         for uav_idx, uav in enumerate(uavs1):
             for point_idx, point in enumerate(uav.path):
                 if (point_idx+1) % (no_path_points+1) == 0:
+                    # assert point.get_distance(uavs2[uav_idx].path[point_idx]) == 0
                     continue
                 dist += point.get_distance(uavs2[uav_idx].path[point_idx])
         return dist
@@ -55,15 +55,15 @@ class DA:
     def get_worst_fly(self):
         return max(self.flies, key=itemgetter('fitness'))
 
-    def cap_position(position, map_dim):
+    def cap_position(self, position, map_dim):
         if position.x > map_dim:
-            position.x = map_dim - 0.1
+            position.x = map_dim - 1
         if position.y > map_dim:
-            position.y = map_dim - 0.1
+            position.y = map_dim - 1
         if position.x < 0:
-            position.x = 0 + 0.1
+            position.x = 0 + 1
         if position.y < 0:
-            position.y = 0 + 0.1
+            position.y = 0 + 1
 
     def separation(self, curr_fly: dict, neighbour_flies: List[dict]):
         # S = - Sum(X - Xj)
@@ -76,6 +76,9 @@ class DA:
                 # if (position_idx+1) % (no_path_points+1) == 0:
                 #     continue
                 S[-1].append(Point(0, 0))
+        
+        if len(neighbour_flies) < 1:
+            return S
 
         # Access: S[uav_idx][pos_idx]
 
@@ -112,6 +115,9 @@ class DA:
             assert len(A[-1]) == len(uav.path)
         assert len(A) == len(curr_fly['uavs'])
 
+        if len(neighbour_flies) < 1:
+            return A
+
         # Access: A[uav_idx][vel_idx]
 
         for fly_idx, neighbour_fly in enumerate(neighbour_flies):
@@ -141,6 +147,9 @@ class DA:
                 #     continue
                 C[-1].append(Point(0, 0))
 
+        if len(neighbour_flies) < 1:
+            return C
+
         # Access: C[uav_idx][pos_idx]
 
         for fly_idx, neighbour_fly in enumerate(neighbour_flies):
@@ -160,10 +169,11 @@ class DA:
             for j in range(len(C[i])):
                 C[i][j]: Point = C[i][j].mul(1/len(neighbour_flies))
 
-        # Subtract result from current fly position
-        for i, uav in enumerate(C):
-            for j, point in enumerate(uav.path):
-                C[i][j] -= curr_fly['uavs'][i][j]
+        # Subtract current fly position from result
+        # Result minux current fly position 
+        for i in range(len(C)):
+            for j in range(len(C[i])):
+                C[i][j]:Point = C[i][j].sub(curr_fly['uavs'][i].path[j])
         return C
 
     def attraction(self, curr_fly: dict, food: dict):
@@ -216,7 +226,18 @@ class DA:
                     enemy_position.add(curr_position))
         return E
 
-    def update_fly(self, fly_idx, i_curr, s: float, a: float, c: float, f: float, e: float, food: dict, enemy: dict):
+    def levy(self):
+        beta=3/2;
+        # Eq. (3.10)
+        sigma = (gamma(1+beta) * sin(pi*beta/2) / (gamma((1+beta)/2)*beta*2**((beta-1)/2))) ** (1/beta)
+        u=np.random.randn()*sigma;
+        v=np.random.randn();
+        step=u/abs(v)**(1/beta);
+
+        # Eq. (3.9)
+        return 0.01*step;
+
+    def update_fly(self, fly_idx, i_curr, s: float, a: float, c: float, f: float, e: float, w:float, food: dict, enemy: dict):
         '''
         update variables for flies
 
@@ -235,19 +256,40 @@ class DA:
                 neighbours_no += 1
                 neighbour_flies.append(self.flies[f2_idx])
 
-        uavs = self.flies[fly_idx]['uavs']
-
         ###### Separation ######
         S = self.separation(self.flies[fly_idx], neighbour_flies)
         ###### Alignment ######
         A = self.alignment(self.flies[fly_idx], neighbour_flies)
         ###### Cohesion ######
-        C = self.cohesion(self.flies[fly_idx], food)
+        C = self.cohesion(self.flies[fly_idx], neighbour_flies)
         ###### Attraction ######
-        A = self.attraction(self.flies[fly_idx], food)
+        F = self.attraction(self.flies[fly_idx], food)
         ###### Distraction ######
-        D = self.distraction(self.flies[fly_idx], enemy)
+        E = self.distraction(self.flies[fly_idx], enemy)
 
+        curr_uavs:List[UAV] = self.flies[fly_idx]['uavs']
+        for uav_idx, curr_uav in enumerate(curr_uavs):
+            for position_idx, curr_position in enumerate(curr_uav.path):
+                if (position_idx+1) % (no_path_points+1) == 0:
+                    continue
+
+                curr_uav.DA_velocities[position_idx] = curr_uav.DA_velocities[position_idx].mul(w)\
+                                                       .add(S[uav_idx][position_idx].mul(s))\
+                                                       .add(A[uav_idx][position_idx].mul(a))\
+                                                       .add(C[uav_idx][position_idx].mul(c))
+                if neighbours_no > 0:
+                    curr_uav.DA_velocities[position_idx] = curr_uav.DA_velocities[position_idx]\
+                                                           .add(F[uav_idx][position_idx].mul(f))\
+                                                           .add(E[uav_idx][position_idx].mul(e))
+                    curr_uav.path[position_idx] = curr_uav.path[position_idx].add(curr_uav.DA_velocities[position_idx])
+                else:
+                    curr_uav.path[position_idx] = curr_uav.path[position_idx]\
+                                                  .add(curr_uav.path[position_idx].mul(self.levy()))
+                self.cap_position(curr_uav.path[position_idx], map_dim)
+
+        self.flies[fly_idx]['uavs'] = curr_uavs
+        self.flies[fly_idx]['fitness'] = System.get_fitness(curr_uavs, 100)
+        return self.flies[fly_idx]['fitness']
 
     def run(self):
         self.init_flies()
@@ -266,10 +308,11 @@ class DA:
             s = 2 * random.random() * my_c
             a = 2 * random.random() * my_c
             c = 2 * random.random() * my_c
-            f = random.random()
+            f = 2 * random.random()
             e = my_c
-
-            self.neighbourhood_radius = map_dim/4 + map_dim * i_curr / self.max_iter * 2
+            w = 0.9 - i_curr *((0.9-0.4)/self.max_iter)
+            self.neighbourhood_radius = map_dim/4 + map_dim * (i_curr / self.max_iter) * 2
+            # self.neighbourhood_radius = 1000
 
             food = self.get_best_fly()
             enemy = self.get_worst_fly()
@@ -277,7 +320,7 @@ class DA:
             fitness_for_iteration = []
 
             for fly_idx in range(self.number_of_flies):
-                fitness = self.update_fly(fly_idx, i_curr, s, a, c, f, e, food, enemy)
+                fitness = self.update_fly(fly_idx, i_curr, s, a, c, f, e, w, food, enemy)
                 fitness_for_iteration.append(fitness)
 
                 if fitness < best_fitness:
@@ -304,10 +347,11 @@ if __name__ == '__main__':
     y_map = map_dim
 
     map_param = [(10, 10), (100, 100), (100, 100), (1000, 1000)]
-    # number_of_flies, spiral_constant, n_iter
-    woa_param = [(40, 5, 100), (50, 4, 200), (50, 5, 200), (100, 3, 200)]
+    # number_of_flies, n_iter
+    da_param = [(30, 400), (50, 800), (50, 200), (100, 200)]
 
-    sys_no = int(input('Input Benchmark number: '))  # 1->4
+    # sys_no = int(input('Input Benchmark number: '))  # 1->4
+    sys_no = 2
 
     # params of test cases
     systems = [sys1, sys2, sys3, sys4]
@@ -315,7 +359,7 @@ if __name__ == '__main__':
     x_map = map_param[sys_no - 1][0]
     y_map = map_param[sys_no - 1][1]
     map_dim = x_map
-    number_of_flies, spiral_constant, n_iter = woa_param[sys_no - 1]
+    number_of_flies, n_iter = da_param[sys_no - 1]
 
     tasks = sys.list_of_tasks
 
@@ -323,32 +367,37 @@ if __name__ == '__main__':
     times = []
     for _ in range(1):
         print('iteration no', _)
-        # start = timeit.default_timer()
+        # start = timeit.default_timer() ### To test runtime (Don't worry about plottings if they are not dynamic)
         sys = copy.deepcopy(systems[sys_no - 1])
 
-        # ACO params
-        number_of_ants = 10
-        number_of_iterations = 50 if (sys_no) < 3 else 100
-        initial_phermone = 0.5
-        rho = 0.5
-        alpha = 0.7
-        beta = 0.4
-        Q = 10
-        sys.list_of_UAVs = ACO_TaskAssignment(
-            sys, number_of_ants, number_of_iterations, initial_phermone, rho, alpha, beta, Q)
-        # sys.assign_random_tasks()
-        # ACO Finished
+        # # ACO params
+        # number_of_ants = 10
+        # number_of_iterations = 50 if (sys_no) < 3 else 100
+        # initial_phermone = 0.5
+        # rho = 0.5
+        # alpha = 0.7
+        # beta = 0.4
+        # Q = 10
+        # sys.list_of_UAVs = ACO_TaskAssignment(
+        #     sys, number_of_ants, number_of_iterations, initial_phermone, rho, alpha, beta, Q)
+        # # ACO Finished
+        sys.assign_random_tasks()
 
-        woa = DA(number_of_flies, spiral_constant, n_iter, map_dim, sys=sys)
-        fitness_values, best_fitnesses, best_fitness, best_fly, best_flies = woa.run()
+        da = DA(number_of_flies, n_iter, map_dim, sys=sys)
+        fitness_values, best_fitnesses, best_fitness, best_fly, best_flies = da.run()
         costs.append(best_fitness)
         # stop = timeit.default_timer()
-        # times.append(stop - start)
-        for best_w in best_flies:
-            plot_paths(best_w['uavs'], tasks=tasks, map_dim=map_dim)
+        # times.append(stop - start) ### To compute runtime after finishing
+        
+        ############ Choose which to plot at the end
+        ### Semi-dynamic updates after each iteration
+        # for best_w in best_flies:  
+        #     plot_paths(best_w['uavs'], tasks=tasks, map_dim=map_dim)
 
-        # plot_paths(best_fly['uavs'], tasks=tasks, map_dim=map_dim)
-        # plot_fitnesses(n_iter, best_fitnesses)
+        ### Final best fly solution
+        plot_paths(best_fly['uavs'], tasks=tasks, map_dim=map_dim) 
+        plot_fitnesses(n_iter, best_fitnesses)
+        ############
 
     # print("Mean:", mean(costs))
     # print("Standard Deviation:", stdev(costs))
