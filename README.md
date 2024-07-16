@@ -8,7 +8,7 @@ We encounter solutions such as Simulated Annealing (SA), Genetic Algorithm (GA),
 
 More information and visualisations [here](https://hadielnemr.github.io/projects/multi_uav_task_assignment_and_path_planning/).
 
-This project part of the **Metaheuristic Optimization Techniques for Multi-Cooperative Systems** course at the German University in Cairo, which is taught by Assist. Prof. Omar Shehata.
+This project was part of the **Metaheuristic Optimization Techniques for Multi-Cooperative Systems** course at the German University in Cairo, which is taught by Assist. Prof. Omar Shehata.
 
 This project was developed by:
 - Hadi Elnemr
