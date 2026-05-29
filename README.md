@@ -69,6 +69,10 @@ python runs/run_woa.py --benchmark 1
 
 For `--live`, use an interactive matplotlib backend (do **not** set `MPLBACKEND=Agg`). You will see **diamond markers** on intermediate path points updating each optimisation step; **dashed** lines are the current candidate and **solid** lines are the best so far.
 
+![WOA live path planning on benchmark 1](docs/assets/woa_liveplot_15s.gif)
+
+*15 s timelapse of `python runs/run_woa.py -b 1 --live` (full run sped up for preview).*
+
 ```bash
 python runs/run_woa.py -b 1 --live
 python runs/run_sa.py -b 1 --live    # map + cost/temperature panels
@@ -109,6 +113,7 @@ python runs/run_all.py -b 1 --skip-sa
 ```
 mutapp/           # Shared models, algorithms, plotting, pipelines
 runs/             # One CLI script per algorithm
+docs/assets/      # README media (e.g. live-plot demo GIF)
 outputs/          # Generated plots (git-ignored)
 legacy/           # Original per-folder copies (archived)
 notebooks/        # Jupyter notebooks from development
