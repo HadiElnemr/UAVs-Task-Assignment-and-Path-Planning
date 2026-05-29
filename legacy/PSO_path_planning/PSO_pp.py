@@ -6,16 +6,15 @@ from matplotlib import animation
 from pso_parameters import *
 from parameters import *
 from classes import *
-from Test_cases import sys1, sys2, sys3, sys4
+# from Test_cases import sys1, sys2, sys3, sys4  # unused by 2D PSO demo below
 import visualise
 
 
-# # Fitness function
-# def fitness_function(x1,x2):
-#   f1=x1+2*-x2+3
-#   f2=2*x1+x2-8
-#   z = f1**2+f2**2
-#   return z
+def fitness_function(x1, x2):
+  f1 = x1 + 2 * -x2 + 3
+  f2 = 2 * x1 + x2 - 8
+  z = f1**2 + f2**2
+  return z
 
 def update_velocity(particle, velocity, pbest, gbest, w_min=0.5, max=1.0, c=0.1):
   # Initialise new velocity array

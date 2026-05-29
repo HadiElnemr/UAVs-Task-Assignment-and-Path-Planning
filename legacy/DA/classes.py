@@ -3,7 +3,7 @@ import random
 import copy
 from typing import List
 # from parameters import costs,i_max,n_tasks,n_uavs,no_path_points,shift_x,shift_y,tasks,uavs,x_map,y_map
-from woa_parameters import *
+from da_parameters import *
 from matplotlib import pyplot as plt
 
 
